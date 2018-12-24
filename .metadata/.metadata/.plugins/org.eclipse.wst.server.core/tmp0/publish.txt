@@ -1,0 +1,5 @@
+#Tomcat publish data
+#Fri Nov 24 18:26:37 CST 2017
+org.eclipse.jst.jee.server\:DSPM=D\:\\apache-tomcat-6.0.29\\webapps\\DSPM
+org.eclipse.jst.jee.server\:/binary\:D\:\\work_space\\DSPM1207\\WebRoot\\WEB-INF\\lib\\spring-web-4.0.5.RELEASE.jar=D\:\\apache-tomcat-6.0.29\\webapps\\DSPM\\WEB-INF\\lib\\spring-web-4.0.5.RELEASE.jar
+org.eclipse.jst.jee.server\:/binary\:D\:\\work_space\\DSPM1207\\WebRoot\\WEB-INF\\lib\\AmEsbService20EJB.jar=D\:\\apache-tomcat-6.0.29\\webapps\\DSPM\\WEB-INF\\lib\\AmEsbService20EJB.jar

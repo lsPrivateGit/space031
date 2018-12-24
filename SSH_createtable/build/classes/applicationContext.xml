@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:context="http://www.springframework.org/schema/context" 
+    xsi:schemaLocation="
+    	http://www.springframework.org/schema/tx 
+    	http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd"> 
+        
+        
+       
+        
+        
+        <!--加载外部的db.properties连接数据库配置文件-->
+        <context:property-placeholder location="classpath:jdbc.properties"/>
+        
+        <!-- 配置dataSource数据源-->
+        <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        	<property name="driverClass" value="${jdbc.driver}"></property>
+			<property name="user" value="${jdbc.user}"></property>
+			<property name="password" value="${jdbc.pwd}"></property>
+			<property name="jdbcUrl" value="${jdbc.url}"></property>
+        </bean>
+      
+        
+        
+        
+      
+        
+        <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        	<property name="sessionFactory" ref="sessionFactory"></property>
+        </bean>
+          <!--配置事务    注解事务 -->
+        <tx:annotation-driven transaction-manager="transactionManager"/>
+        
+        
+        
+        
+        <!--配置 sessionFactory-->
+        <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        	
+        	<property name="dataSource" ref="dataSource"></property>
+        	
+        		<!-- 配置hibernate属性，用于替代hiernate.cfg.xml配置文件-->
+        	<property name="hibernateProperties">
+        		<props>
+    				<prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+					<prop key="hibernate.hbm2ddl.auto">update</prop>
+					<prop key="hibernate.format_sql">true</prop>
+					<prop key="hibernate.show_sql">true</prop>    		
+        		</props>
+        	</property>
+        	
+        	<!-- 配置bean的映射文件-->
+        	<property name="mappingDirectoryLocations">
+        		<value>classpath:cn/sun/crm/domain</value>
+        	</property>
+        </bean>
+        
+        
+        
+        <bean id="userService" class="cn.sun.crm.service.impl.UserServiceImpl">
+        	<property name="userDao" ref="userDao"></property>
+        </bean>
+        <bean id="userDao" class="cn.sun.crm.dao.impl.UserDaoImpl">
+        	<property name="sessionFactory" ref="sessionFactory"></property>
+        </bean>
+        
+        
+        
+        
+   </beans>     

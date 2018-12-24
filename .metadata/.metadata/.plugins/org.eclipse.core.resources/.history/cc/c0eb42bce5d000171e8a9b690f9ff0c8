@@ -1,0 +1,2655 @@
+<%@ page contentType="text/html; charset=GBK"%>
+<%@page import="com.dashuf.util.CallDSDEUtils"%>
+<%@ include file="/IncludeBegin.jsp"%>
+
+<%/*~BEGIN~可编辑区~[Editable=true;CodeAreaID=Info00;Describe=注释区;]~*/%>
+	<%
+	/*
+		Author:lywang
+		Tester:
+		Describe: 
+		Input Param:
+			ObjectNo：
+			SerialNo：
+		Output Param:
+		HistoryLog:
+			 
+	 */
+	%>
+<%/*~END~*/%>
+
+
+<%/*~BEGIN~可编辑区~[Editable=true;CodeAreaID=Info01;Describe=定义页面属性;]~*/%>
+	<%
+	String PG_TITLE = "面核面签信息"; // 浏览器窗口标题 <title> PG_TITLE </title>
+	CurPage.setAttribute("ShowDetailArea","true");
+	CurPage.setAttribute("DetailAreaHeight","650");	
+	%>
+<%/*~END~*/%>
+
+
+<%/*~BEGIN~可编辑区~[Editable=true;CodeAreaID=Info02;Describe=定义变量，获取参数;]~*/%>
+<%
+	//定义变量
+	//获得页面参数	 
+	String sOccurType="",sAdjustRateType="",sMainReturnType="",sReturnPeriod="";
+	String sEmployeeType="", sPostTitle = "", sAuthorEmployeeType="",sAuthorPostTitle="", sBizSource="";
+    ASResultSet rs_1 = null;
+	String sSerialNo = DataConvert.toRealString(iPostChange,(String) CurPage.getParameter("SerialNo"));
+	if (sSerialNo == null){
+		sSerialNo = "";
+	} else{
+		/*20171124 ex-yijiangpeng 新天眼增加字段 POSTTITLE,下面要判断：EMPLOYEETYPE,AUTHORPOSTTITLE, AUTHOREMPLOYEETYPE, BIZSOURCE
+		String sFixValueSql = "select OccurType,AdjustRateType,MainReturnType,ReturnPeriod from aheadwill_info ai where ai.serialno = '"+sSerialNo+"'";*/
+		String sFixValueSql = "select OccurType,AdjustRateType,MainReturnType,ReturnPeriod, EMPLOYEETYPE, POSTTITLE, AUTHORPOSTTITLE, AUTHOREMPLOYEETYPE, BIZSOURCE  from aheadwill_info ai where ai.serialno = '"+sSerialNo+"'";
+		rs_1 =Sqlca.getASResultSet(sFixValueSql);
+    	if(rs_1.next()){
+    		sOccurType =DataConvert.toString(rs_1.getString("OccurType"));//营销人员编号	
+    		sAdjustRateType =DataConvert.toString(rs_1.getString("AdjustRateType"));//营销人员编号	
+    		sMainReturnType =DataConvert.toString(rs_1.getString("MainReturnType"));//营销人员编号	
+    		sReturnPeriod =DataConvert.toString(rs_1.getString("ReturnPeriod"));//营销人员编号
+    		//20171124 ex-yijiangpeng 新天眼增加字段 POSTTITLE,下面要判断：EMPLOYEETYPE,AUTHORPOSTTITLE, AUTHOREMPLOYEETYPE, BIZSOURCE
+    		sEmployeeType =DataConvert.toString(rs_1.getString("EMPLOYEETYPE"));	//客户类型
+    		sPostTitle =DataConvert.toString(rs_1.getString("POSTTITLE"));			//岗位职称
+    		sAuthorPostTitle =DataConvert.toString(rs_1.getString("AUTHORPOSTTITLE"));			//征信授权保存的岗位职称
+    		sAuthorEmployeeType =DataConvert.toString(rs_1.getString("AUTHOREMPLOYEETYPE"));	//征信授权保存的客户类型
+    		sBizSource =DataConvert.toString(rs_1.getString("BIZSOURCE"));			//业务来源
+    	}
+    	
+    	if(null != rs_1) {
+    		rs_1.close();
+    	}
+	}
+	
+	//20171124 ex-yijiangpeng 新天眼增加字段 POSTTITLE,下面要判断：业务来源BIZSOURCE,客户类型EmployeeType
+	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>sSerialNo="+sSerialNo+",sOccurType="+sOccurType+"  sAdjustRateType="+sAdjustRateType+"  sMainReturnType="+sMainReturnType+"  sReturnPeriod="+sReturnPeriod
+		+", sEmployeeType=["+sEmployeeType+"], sPostTitle=["+sPostTitle+"],sAuthorPostTitle=["+sAuthorPostTitle+"], sAuthorEmployeeType=["+sAuthorEmployeeType+"], sBizSource=["+sBizSource+"]");
+	
+	String sLineID = DataConvert.toRealString(iPostChange,(String) CurPage.getParameter("LineID"));	
+	if (sLineID == null) sLineID = "";
+	
+	
+	String sFlag = DataConvert.toRealString(iPostChange,(String) CurPage.getParameter("Flag"));
+	if (sFlag == null) sFlag = "";
+	
+	
+	//获得页面参数	
+	String sRightType = DataConvert.toRealString(iPostChange,(String) CurPage.getParameter("RightType"));
+	if (sRightType == null) sRightType = "";
+	
+	String sCheckCertID = "",sLoanSchemeCode = "";
+	String sCertID = DataConvert.toRealString(iPostChange,(String) CurPage.getParameter("CertID"));
+	if (sCertID == null) sCertID = "";
+	
+	String sAuthorReason = DataConvert.toRealString(iPostChange,(String) CurPage.getParameter("AuthorReason"));
+	if (sAuthorReason == null) sAuthorReason = "";
+	
+	//我司否决复议添加是否重签贷款资料字段 20170419 wangbin start
+	String sSignFlag = DataConvert.toRealString(iPostChange,(String) CurPage.getParameter("SignFlag"));
+	if (sSignFlag == null) sSignFlag = "";
+	//我司否决复议添加是否重签贷款资料字段 20170419 wangbin end
+	
+	
+	System.out.println("-----sAuthorReason---"+sAuthorReason);
+	ASResultSet rs = null;//-- 存放结果集
+	System.out.println("-----sFlag-----"+sFlag);
+	System.out.println(sSerialNo+"-----OrgID-----"+CurOrg.OrgID);
+	
+	 //查询面核结论
+   /* 	String qSql = "",resutl="",message="";                                        
+	ASResultSet fackrs = null;
+	qSql = "select fackresutl,fackmessage from facecheck_opinion  where serialno='"+sSerialNo+"' ";                                                        
+	fackrs = Sqlca.getASResultSet(qSql);   
+    while(fackrs.next()){
+     	resutl= DataConvert.toString(fackrs.getString("fackresutl"));
+     	message = DataConvert.toString(fackrs.getString("fackmessage"));         
+     }
+      fackrs.close();	 */
+  	//ex-liutieshan 2017.11.21 判断当前是否处于面核状态
+  	String Facetoverifyflag = DataConvert.toRealString(iPostChange,(String) CurPage.getParameter("Facetoverifyflag"));
+  	if (Facetoverifyflag == null) Facetoverifyflag = "";
+%>
+<%/*~END~*/%>
+
+
+<%/*~BEGIN~可编辑区~[Editable=true;CodeAreaID=Info03;Describe=定义数据对象;]~*/%>
+	<%
+	//根据合作方关联表aheadwill_Line中获得显示模版名称
+	String sTempletNo = "",sInputOrgID="",sPrimaryProduct="";
+	
+	String sSql = 	" select DataObjectNo as TempletNo from aheadwill_Line  where  LineID = '"+sLineID+"'  ";
+	String sSql2 = 	" select inputorgid,primaryproduct from aheadwill_info  where  serialno = '"+sSerialNo+"'  ";
+    String sCreateSql = "select CERTID,LOANSCHEMECODE from ActiveCreditList where  CERTID = '"+sCertID+"' and STATE = '1' and INPUTDATE = "
+                      +"(select max(INPUTDATE) from  ActiveCreditList acl where CERTID = '"+sCertID+"' and DATEOFCOMMENCEMENT<='"+sBusinessDate+"' and DATEOFEXPIRY>='"+sBusinessDate+"')";
+	System.out.println(sCreateSql);
+
+	rs = Sqlca.getASResultSet(sSql);
+	if(rs.next())
+	{
+		sTempletNo = rs.getString(1);
+	}
+	rs.close(); 
+	
+	rs = Sqlca.getASResultSet(sSql2);
+	if(rs.next())
+	{
+		sInputOrgID = rs.getString("inputorgid");
+		sPrimaryProduct = rs.getString("primaryproduct");
+	}
+	rs.close();
+	
+	rs = Sqlca.getASResultSet(sCreateSql);
+	if(rs.next())
+	{
+		sCheckCertID = rs.getString(1);
+		sLoanSchemeCode = rs.getString(2);
+	}
+	rs.close(); 
+	
+	if(sTempletNo == null || sTempletNo.equals("")){
+		sTempletNo = "LotDetailInfo";
+	}
+	
+	System.out.println("-----sCheckCertID---"+sCheckCertID);
+	
+	//通过显示模版产生ASDataObject对象doTemp
+	ASDataObject doTemp = new ASDataObject(sTempletNo,Sqlca);
+	
+	//北京银行对接需求新增代码-----------------开始-----------author：ljshan   time:2015/09/24
+	if("RL20150629000003".equals(sLineID)){
+		doTemp.setVisible("EnterpCustomerName,EnterpCertType,EnterpCertID,BusinessLicense,ExpiryDate,StaffNumber,RegisterCapital,OperatingSiteOwnership,BJFamilyProvincesName",true);//设置这几个字段都必须展示
+		doTemp.setHTMLStyle("EmployeeType","onChange=\"javascript:parent.EmployeeTypeChange()\"");
+		//20161215_面签一体化	huangweibin
+		doTemp.setVisible("PartnerManagerID",true);
+		doTemp.setRequired("PartnerManagerID",true);
+		doTemp.setDDDWSql("PartnerManagerID","select ItemNo,(ItemNo||'@'||ItemName) as ItemName from code_library where codeno = 'BJBankEmployeeNum' and Attribute1 = '"+sLineID+"' and Attribute2 = '"+CurOrg.OrgID+"' and isinuse = '1' order by SortNo");
+	}
+	//北京银行对接需求新增代码-----------------结束-----------author：ljshan   time:2015/09/24
+	
+	//查询是否在面签面核阶段
+	String sFlagSurface = DataConvert.toString(Sqlca.getString("SELECT FLAG FROM  AHEADWILL_INFO  WHERE  SERIALNO='"+sSerialNo+"'"));
+	String sCHARGELOTFLAG = DataConvert.toString(Sqlca.getString("SELECT CHARGELOTFLAG FROM  AHEADWILL_INFO  WHERE  SERIALNO='"+sSerialNo+"'"));
+	
+	 //面签面核环节  贷款品种字段禁用(付绍军 口述过来的   面签签面核打印申请表里与面签提交  贷款品种 字段禁用需求    存在风险 非面签环节时如果产品选错了  在面签面核 环节打印合同时会造成影响       修改者 lx)
+	 if("05".equals(sFlagSurface)){
+	    doTemp.setReadOnly("BusinessType",true);
+	 }else{
+		doTemp.setReadOnly("BusinessType",false);
+	 }
+	 //分两笔业务设定贷款品种可修改，贷款期限不可修改  oubangfei  0921
+	 if("050".equals(sAuthorReason)){
+		 System.out.print("分两笔业务(收件备签阶段)，贷款期限不可修改============="+sAuthorReason);
+		 doTemp.setReadOnly("LoanTerm",true);
+		 doTemp.setReadOnly("BusinessType",false);
+	 }
+	 //收件备签阶段
+	 if("04".equals(sFlagSurface)){
+		doTemp.setVisible("IfGraduate",false); //added by lkk
+	    doTemp.setReadOnly("BusinessAssistantName",true);//业务助理置灰
+		doTemp.setUnit("BusinessAssistantName","");
+	 }
+	 //收件备签完成之后
+	 if(!"PrintApply".equals(sFlag)){
+		doTemp.setVisible("IfGraduate",false); //added by lkk
+	 }
+	 
+	//天眼0408版本：收件备签阶段
+	//判断FICO是否有数据
+	/*String sProductCode = DataConvert.toString(Sqlca.getString("select distinct p.productcode from decisionresponse d,productselected p where p.decisionresponseserialno = d.serialno and d.isrecent = '1' and p.riskscorelevel <>'L' and p.primaryproduct='"+sPrimaryProduct+"' and d.enginenode in ('002','003') and d.applyserialno = '"+sSerialNo+"'"));
+	
+	if("04".equals(sFlagSurface) && !"".equals(sProductCode)){
+	    doTemp.setDDDWSql("BusinessType","select TYPENO,TYPENAME from BUSINESS_TYPE WHERE ISINUSE='1' and typeno in (select distinct p.productcode from decisionresponse d,productselected p where p.decisionresponseserialno = d.serialno and d.isrecent = '1' and p.riskscorelevel <>'L' and p.primaryproduct='"+sPrimaryProduct+"' and d.enginenode in ('002','003') and d.applyserialno = '"+sSerialNo+"')");
+	}else{
+	    doTemp.setDDDWSql("BusinessType","select TYPENO,TYPENAME from BUSINESS_TYPE WHERE ISINUSE='1'");
+	}*/
+	
+	//默认看不到房抵贷
+	doTemp.setDDDWSql("BusinessType","select TYPENO,TYPENAME from BUSINESS_TYPE WHERE ISINUSE='1' and TYPENO !='1010210'");
+	
+	//诚信贷
+	if(!sCheckCertID.equals(sCertID)){
+		doTemp.setDDDWSql("BusinessType","select TYPENO,TYPENAME from BUSINESS_TYPE WHERE ISINUSE='1' and TYPENO !='1010170' and TYPENO !='1010210' ");
+		doTemp.setReadOnly("LoanSchemeCode",true);
+	}
+	
+	//北京银行
+	if("RL20150629000003".equals(sLineID)){
+		doTemp.setDDDWSql("PurposeTypeNo","select TYPENO,TYPENAME from BUSINESS_TYPE WHERE ISINUSE='1' and TYPENO !='1010170' and TYPENO !='1010210'");
+	}
+	
+	//一级产品是抵押贷款只能看到房抵贷
+	if("030".equals(sPrimaryProduct)){
+		doTemp.setDDDWSql("BusinessType","select TYPENO, TYPENAME from BUSINESS_TYPE WHERE ISINUSE='1' and TYPENO ='1010210'");
+		doTemp.setDDDWSql("LoanTerm","select ItemNo,ItemName from CODE_LIBRARY where CodeNo='TermMonth' and (ItemNo='60' or ItemNo='120')");
+	}
+	
+	
+	//专属类别   配置为总部的  所有分公司均可见， 配置为分公司的只有该分公司可见
+	doTemp.setDDDWSql("ExclusiveTypeNo","select ItemNo,ItemName from CODE_LIBRARY where codeno = 'ExclusiveType' and isinuse = '1' and (RELATIVECODE like '%@1@%' or RELATIVECODE like '%@"+CurOrg.OrgID+"@%')");
+
+	System.out.println("-------------->>"+sCheckCertID+"-------------->>"+sCertID+"---------------------->>"+sLoanSchemeCode);
+	
+	//随鑫贷
+	doTemp.setHTMLStyle("BusinessType","onChange = parent.OriginalLoanAmount()");
+	//车供贷选择信用卡分期下拉框
+	doTemp.setHTMLStyle("creditinstallmentflag","onChange = parent.selectModel()");
+	
+	System.out.println(sRightType);
+	System.out.println(sAuthorReason);
+	System.out.println(sSignFlag);
+	//授权原因为我司否决复议，并且不重签贷款资料时，设置为只读 wangbin 20170419 
+	if("ReadOnly".equals(sRightType)||("030".equals(sAuthorReason)&&"0".equals(sSignFlag))){
+	 doTemp.setReadOnly("*",true);
+	 doTemp.setUnit("AddressName,SchoolName,FamilyProvincesName,WorkProvincesName,BusinessAssistantName,SaleTeamName,ChannelName,AccountRepayBank,AccountInsubBank,HouseAddressName,HouseAddressName2,AccessoryMaterialName,HouseADDName,Channel_Remark","");
+	}
+	
+	//合方放款否决业务禁止修改数据    贷款品种、贷款期限、申请金额  20170506版本  lx
+	if("020".equals(sAuthorReason)){
+	     doTemp.setReadOnly("BusinessType,LoanTerm,BusinessSum",true);
+	}
+	
+	ASDataWindow dwTemp = new ASDataWindow(CurPage,doTemp,Sqlca); 
+	dwTemp.Style="2";      //设置DW风格 1:Grid 2:Freeform
+	dwTemp.ReadOnly = "0"; //设置是否只读 1:只读 0:可写
+	
+	// 设置泊位
+	String sHTMLTemplate = "<table  width='100%'>";
+	       sHTMLTemplate += "<tr><td><fieldset><legend class=rrr><em>借款人信息</em></legend>${DOCK:Part1}</fieldset></td></tr>";
+	       
+	if("RL20150629000003".equals(sLineID)){
+		sHTMLTemplate += "<tr><td><fieldset><legend class=rrr><em>用款企业信息 <font size = '2' color='red'>* 如果客户为自雇人士,则以下信息必填! </em></legend>${DOCK:Part7}</fieldset></td></tr>";
+	}
+	
+	//sHTMLTemplate += "<tr><td><fieldset><legend class=rrr><em>联系人信息</em></legend>${DOCK:Part2}</fieldset></td></tr>";
+	sHTMLTemplate += "<tr><td><fieldset><legend class=rrr><em>贷款事项</em></legend>${DOCK:Part3}</fieldset></td></tr>";
+	//sHTMLTemplate += "<tr><td><fieldset><legend class=rrr><em>账户管理授权信息</em></legend>${DOCK:Part4}</fieldset></td></tr>";  // lkk
+	sHTMLTemplate += "<tr><td><fieldset><legend class=rrr><em>特别事项说明栏</em></legend>${DOCK:Part5}</fieldset></td></tr>";
+	sHTMLTemplate += "<tr><td><fieldset><legend class=rrr><em>银行填写栏（以下为非客户填写事项）</em></legend>${DOCK:Part6}</fieldset></td></tr>";
+    sHTMLTemplate += "<tr><td>${DOCK:default}</td></tr>";
+	sHTMLTemplate += "</table>";
+	
+	dwTemp.setHarborTemplate(sHTMLTemplate);
+	//生成HTMLDataWindow
+	Vector vTemp = dwTemp.genHTMLDataWindow(sSerialNo);
+	for(int i=0;i<vTemp.size();i++) out.print((String)vTemp.get(i));
+	
+	//眼明手快开关
+	String nimbleSwitch=Sqlca.getString("select isinuse from code_library where codeno = 'nimbleSwitch' and itemno='"+CurUser.OrgID+"'");
+	//判断客户是否是客户经理或者助理
+	boolean isSale=false;
+	if(CurUser.hasRole("DSPMR0180") || CurUser.hasRole("DSPMR0190")||CurUser.hasRole("DSPMR0333") || CurUser.hasRole("DSPMR0334")){
+		isSale=true;
+	}
+	//切换引入模式和直接显示模式
+	String sFlagFace = DataConvert.toString(Sqlca.getString("select isinuse from code_library where codeno='SwitchSubmitToFace' "));
+	
+	String ssFlag = Sqlca.getString("select itemno From code_library where codeno='surfaceScan' and isinuse='1' ");
+
+	%>
+<%/*~END~*/%>
+
+
+
+<%/*~BEGIN~可编辑区~[Editable=true;CodeAreaID=Info04;Describe=定义按钮;]~*/%>
+	<%
+	//依次为：
+		//0.是否显示
+		//1.注册目标组件号(为空则自动取当前组件)
+		//2.类型(Button/ButtonWithNoAction/HyperLinkText/TreeviewItem/PlainText/Blank)
+		//3.按钮文字
+		//4.说明文字
+		//5.事件
+		//6.资源图片路径
+	String sButtons[][] = {
+		{"false","","Button","保存并提交","保存并提交","saveAndSubmit()",sResourcesPath},
+		{"true","","Button","保存","保存所有修改","saveRecord()",sResourcesPath},
+		{"true","","Button","暂存","暂时保存所有修改内容","saveRecordTemp()",sResourcesPath},
+		{"false","","Button","生成电子合同","生成电子合同","changeTab()",sResourcesPath},//生成电子合同的
+		{"false","","Button","打印贷款申请表","打印贷款申请表","PrintApply()",sResourcesPath},//生成电子合同的
+		{"false","","Button","返回","返回","ReturnBack()",sResourcesPath},
+		{"false","","Button","提交","提交","checkSubmit()",sResourcesPath}
+		};
+		if("ReadOnly".equals(sRightType)){
+			 sButtons[0][0]="false";
+			 sButtons[2][0]="false";
+			 sButtons[5][0]="true";
+			 //leixufeng 20170223版本bug更改   满足ReadOnly和 sFlagSurface = 05
+		}else{
+			//生成电子合同的
+			if("true".equals(sFlag)){
+				 sButtons[0][0]="false";
+				 sButtons[1][0]="true";
+				 sButtons[3][0]="true";
+				 sButtons[5][0]="true";
+				 
+			}
+			//打印贷款申请表
+			if("PrintApply".equals(sFlag)){
+				sButtons[0][0]="false";
+				sButtons[1][0]="true";
+				sButtons[4][0]="true"; 
+				sButtons[5][0]="true";
+			}
+			if("05".equals(sFlagSurface)){
+			    sButtons[0][0]="false";
+				sButtons[1][0]="true";
+				sButtons[4][0]="true"; 
+				sButtons[5][0]="true";
+			}
+			//否决复议的，屏蔽按钮，----add wangyahui
+			
+			if(("030".equals(sAuthorReason)&&"0".equals(sSignFlag))){
+				sButtons[0][0]="false";
+				 sButtons[2][0]="false";
+			}
+			System.out.println("----Facetoverifyflag:"+Facetoverifyflag+"-------");
+			//眼明手快需求ex-liutieshan by 2017.11.21 新增提交按钮
+			if("02".equals(Facetoverifyflag)){
+				sButtons[6][0]="true";
+			}
+		}
+	%>
+<%/*~END~*/%>
+
+
+<%/*~BEGIN~不可编辑区~[Editable=false;CodeAreaID=Info05;Describe=主体页面;]~*/%>
+	<%@include file="/Resources/CodeParts/Info05.jsp"%>
+<%/*~END~*/%>
+
+
+<%/*~BEGIN~可编辑区~[Editable=false;CodeAreaID=Info06;Describe=定义按钮事件;]~*/%>
+	<script language=javascript>
+	var bIsInsert = false; //标记DW是否处于“新增状态”
+ 
+	//---------------------定义按钮事件------------------------------------
+	//高亮方法变动
+	function changeColor(obj){
+		var iCol = getColIndex(0,obj.value);
+		
+		if(obj.checked){
+			myiframe0.document.getElementById("tdR"+getRow()+"F"+iCol).style.color="red";
+		}else{
+			myiframe0.document.getElementById("tdR"+getRow()+"F"+iCol).style.color="";
+		}
+	}
+	
+	/*~[Describe=保存;InputParam=后续事件;OutPutParam=无;]~*/
+	function saveRecord()
+	{  
+	   var flag = "<%=sFlag%>";
+	   Beforesave();
+	    var sSerialNo = getItemValue(0,getRow(),"SerialNo");//申请流水号
+	    var sIscommonBorrower = getItemValue(0,getRow(),"IscommonBorrower");//是否有共同借款人
+	 	//校验亲属与非亲属联系人的个数
+	 	var RelationNumber01=RunMethod("CBBusinessManage","getRelationNumber01",sSerialNo+",01");//取出有几个亲属联系人
+	 	var RelationNumber02=RunMethod("CBBusinessManage","getRelationNumber02",sSerialNo+",02");//取出有几个亲属联系人
+	 	if(parseInt(RelationNumber01)<parseInt('2.0')){
+	 		alert("亲属联系人信息没有达到2人");
+	 		return false;
+	 	}
+	 	if(parseInt(RelationNumber02)<parseInt('3.0')){
+	 		alert("非亲属联系人信息没有达到3人");
+	 		return false;
+	 	}
+	 	//tangbo
+	 	if(sIscommonBorrower=="1"){
+	   		var Rttmp=RunMethod("CBBusinessManage","getIscommonBorrower",sSerialNo);//取出有几个共同借款人
+		 	if(Rttmp=="0.0"){
+		 		alert("共同借款人信息不能为空!");
+		 		return false;
+		 	}
+	   	}
+	 	
+	    setItemValue(0,getRow(),'TempSaveFlag',"2");//暂存标志（1：是；2：否）
+	    var sssChannel = getItemValue(0,getRow(),"Channel");
+	    if(sssChannel == "001000"){
+	    	setItemValue(0,getRow(),"ChannelDeputy_Certid","");
+	    	setItemValue(0,getRow(),"ChannelDeputy_Name","");
+	    	setItemValue(0,getRow(),"ChannelDeputy_Telephone","")
+		}
+	    if(bIsInsert){
+			beforeInsert();
+		}
+		beforeUpdate();
+		//天眼一期_所有合作方_随心贷_原贷款金额字段移出单独录入（小灰灰）   页面效验后续问题处理（lx）
+		//必要性检查控制
+		// 校验是否全部录入
+		if( ! vI_all("myiframe0")) return;
+		//if(!checkHouseInfo()) return;
+		//checkHouseCertificate2();
+		setReckonMonthlyIncome();
+		checkEffectiveDate();//面签一体化
+		//checkRelationShip();//面签一体化
+		//if(!checkSameHouseCertificate()) return;
+		checkChannel2();//添加  渠道验证  
+
+	    if(!ValidityCheck()) return ;
+	    
+	    var AddressName =  getItemValue(0,getRow(),"Address");
+		setItemValue(0,getRow(),"NativePlace",AddressName);
+		setItemValue(0,getRow(),"RegistAddress",AddressName);
+	   if(!checkProductIncomeInfo()){
+			return;
+		}
+		 //学历贷的业务
+		//var sreturn = checkEducation();//校验学历贷的
+		//if(sreturn == null ||  sreturn == "0.0"){
+			//alert("学历贷数据已变更,系统已自动保存数据，请重新点击保存按钮");
+			//reloadSelf();
+			//return;
+		//}
+		//挖掘中心业务
+		var sECSerialNo = getItemValue(0,getRow(),"SerialNo");//申请流水号
+	    var sIsgrap=RunMethod("CBBusinessManage","SelectAIsgrap",sECSerialNo);//取出是否挖掘中心业务标识
+        if(sIsgrap=="1"){
+		     RunMethod("CBBusinessManage","UpdateECTempSaveFlag",sECSerialNo+",2");//更新为暂存标志(挖掘中心专用)
+		}
+	    
+	    //安信同事校验
+	    var sLineID = "<%=sLineID%>";
+	    if(sLineID=="RL20151210000001"){
+	 		var workmateCount=RunMethod("CBBusinessManage","GetWorkmate",sSerialNo);//同事个数
+	 		if(parseInt(workmateCount)<parseInt('1.0')){
+	 			alert("非亲属联系人没有同事信息");
+	 			return false;
+	 		}
+	 		var sIsaware=RunMethod("CBBusinessManage","CheckAXIsaware",sSerialNo);//取出有几个亲属联系人
+		 	if(sIsaware=="false"){
+		 		alert("联系人是否悉知不能为空");
+		 		return false;
+		 	}
+	 	}
+		
+	    //20171124 ex-yijiangpeng 新天眼增加字段； 保存时校验客户类型为自雇人士”岗位职称“是否录入，如未录入则弹出”自雇人士需选择岗位职称！“，无法建档成功
+	    if(!verifyEmployeeType()) return;
+	    
+	  //add by zhoulongjiang 20171023 存储可疑高亮信息 begin
+		var boxes = myiframe0.document.getElementsByName("highlight");
+	    
+		var colnames="";
+	    for(i=0;i<boxes.length;i++){
+	    	if(boxes[i].checked){
+	    		colnames =colnames + boxes[i].value+"$";
+	    	}
+	    }
+	    if(""!=colnames){
+	    	RunMethod("PublicMethod","UpdateColValue","String@DOUBTINFO@"+colnames+",AheadWill_Info,String@SerialNo@"+sSerialNo);
+	    }
+	    //add by zhoulongjiang 20171023 存储可疑高亮信息 end
+	    // 审核提示校验前置   zengzhicheng		20171109  begin  加了“preCheck()”
+		as_save("myiframe0","preCheck()");
+		
+		if('PrintApply'!=flag){beforeLoading();}
+		
+		//as_save("myiframe0",sPostEvents);
+        //top.close();
+         //20161231_客户曾用名信息映射到关联人征信授权表(RelatedPerson_info)
+	    getRelatedPersonInfo_NameUsedBefore();
+	    //20161231_配偶信息映射到关联人征信授权表(RelatedPerson_info)
+	    getRelatedPersonInfo_Spouse();
+	    reloadSelf();
+	  	
+	}
+	
+	//审核提示校验前置   zengzhicheng		20171109  begin
+	function preCheck(){
+		var sSerialNo = getItemValue(0,getRow(),"SerialNo");//申请流水号
+	    sObjectType = "CBAheadwill";
+	    var sReturn = PopPage("/CreditManage/DESPutApply/CBAheadwillCheck.jsp?ObjectType="+sObjectType+"&ObjectNo="+sSerialNo,"","dialogWidth:620px;dialogHeight:450px;status:no;center:yes;help:no;minimize:no;maximize:no;statusbar:no;");
+        if(typeof(sReturn) == "undefined" || sReturn.length == 0 || sReturn == "FALSE"){
+        	RunMethod("CBBusinessManage","changeTempSaveFlag",sSerialNo);//如果有必要性提示，则将数据改为暂存状态
+        }
+	}
+	//zengzhicheng  end
+	
+	 //20171124 ex-yijiangpeng 点击保存时系统读取“是否接受无岗位职称进件”，如为“否”，如【岗位职称】为“无”，则弹出提示“该机构不可进行无岗位职称进件，请更换合作机构！”无法建档（所有授权原因均用此判断）
+	 function verifyEmployeeType(){
+		var sLineId = "<%=sLineID%>";
+		var sEmployeeType = getItemValue(0,getRow(),"EmployeeType");
+		var sPostTitle = getItemValue(0,getRow(),"PostTitle");
+		
+		if("060" == sEmployeeType && ("" == sPostTitle || null == sPostTitle  )){
+ 			alert("自雇人士需选择岗位职称！");
+ 			return false;
+		}
+		
+	    var sAcceptPostTitle = RunMethod("CBBusinessManage","GetPostTitleByLineId",sLineId);
+	    if("060" == sEmployeeType && "0"==sAcceptPostTitle && "0" == sPostTitle ){
+	    	alert("该机构不可进行无岗位职称进件，请更换合作机构！");
+	    	return false;
+	    }
+	    	
+	    return true;
+	 }
+
+	 
+	function checkHouseFlag(){ 
+		var HouseFlag = getItemValue(0,getRow(),"HouseFlag");
+		var HouseProvinces = getItemValue(0,getRow(),"HouseProvinces");
+		var DetailedHouseADD = getItemValue(0,getRow(),"DetailedHouseADD");
+		if(HouseFlag=='1'){
+			if(HouseProvinces==''||DetailedHouseADD==''){
+				return false;
+			}else{
+				return true;
+			}
+		}else{
+			return true;
+		}	
+	 }
+	 
+	
+	/*~[Describe=保存并提交;InputParam=后续事件;OutPutParam=无;]~*/
+	function saveAndSubmit()
+	{  
+	    if(bIsInsert){
+			beforeInsert();
+		}
+		beforeUpdate();
+		
+		//alert(checkHouseFlag());
+		if( ! checkHouseFlag()){
+			alert("房产地址为空或者房产详细地址为空");
+			return;
+		}
+		//天眼一期_所有合作方_随心贷_原贷款金额字段移出单独录入（小灰灰）   页面效验后续问题处理（lx）
+		//必要性检查控制
+		//checkOriginalLoanAmount();
+		// 校验是否全部录入
+		checkEffectiveDate();//面签一体化
+		checkRelationShip();//面签一体化
+		if( ! vI_all("myiframe0")) return;
+		//if(!checkHouseInfo()) return;
+		//checkHouseCertificate2();
+		setReckonMonthlyIncome();				
+		//if(!checkSameHouseCertificate()) return;
+	    if(!ValidityCheck()) return ;
+	    var AddressName =  getItemValue(0,getRow(),"Address");
+		setItemValue(0,getRow(),"NativePlace",AddressName);
+		setItemValue(0,getRow(),"RegistAddress",AddressName);
+	    if(!checkProductIncomeInfo()){
+			return;
+		}
+		//校验区
+		
+		
+		
+		
+		
+		var sreturn = checkEducation();//校验学历贷的
+		
+		as_save("myiframe0");//保存字段
+		
+		
+		
+	//提交任务
+		//挖掘中心业务
+		var sECSerialNo = getItemValue(0,getRow(),"SerialNo");//申请流水号
+	    var sIsgrap=RunMethod("CBBusinessManage","SelectAIsgrap",sECSerialNo);//取出是否挖掘中心业务标识
+        if(sIsgrap=="1"){
+		     RunMethod("CBBusinessManage","UpdateECTempSaveFlag",sECSerialNo+",2");//更新为暂存标志(挖掘中心专用)
+		}
+	    
+	    
+	    
+	    //学历贷的业务
+		if(sreturn == null ||  sreturn == "0.0"){
+			alert("学历贷数据已变更,系统已自动保存数据，请重新点击提交并保存按钮");
+			reloadSelf();
+			return;
+		}
+		//as_save("myiframe0",sPostEvents);
+        //top.close();
+       
+       //映射表业务
+        //20161231_客户曾用名信息映射到关联人征信授权表(RelatedPerson_info)
+	    getRelatedPersonInfo_NameUsedBefore();
+        //20161231_配偶信息映射到关联人征信授权表(RelatedPerson_info)
+	    getRelatedPersonInfo_Spouse();
+	    
+	    
+	    
+	    
+	 //提交任务的具体操作
+        //获得申请类型、申请流水号
+		var sSerialNo = getItemValue(0,getRow(),"SerialNo");
+		var sUserID="<%=CurUser.UserID%>";
+		var centerId = RunMethod("CBBusinessManage","GetSignAddress",sSerialNo);
+		var sFlag="SubmitToFaceSignNew";
+		var sBusinessChannel = RunMethod("PublicMethod","GetColValue","BusinessChannel" + "," + "aheadwill_info" + "," + "serialno='"+sSerialNo+"'");
+		var sftSerialNo = RunMethod("PublicMethod","GetColValue","SerialNo" + "," + "Flow_Task" + "," + "Objecttype='CBCreditApply' and endtime is null and Objectno='"+sSerialNo+"'");
+		if("DISP"==sBusinessChannel && "<%= sFlagFace%>"=="1")
+			sFlag = "SideToSign0052";
+		/*var sPreScoreFlag = getItemValue(0,getRow(),"PreScoreFlag");
+        if (sPreScoreFlag!="1"){
+			alert("请先做评分后再提交！");//请选择一条信息！
+			return;
+		}*/
+		//弹出提交窗口
+		if(confirm("确认要提交面核面签吗？")) 
+		{
+		   	//调用FICO：005反欺诈
+            var sRe005 = RunMethod("CBBusinessManage","RuleSetCheckDesicion",sSerialNo+",SYN,005");
+            
+		    if(sRe005=="P"){//通过
+			   //调用FICO：006录入业务数据后判断
+               var sRe006 = RunMethod("CBBusinessManage","RuleSetCheckDesicion",sSerialNo+",SYN,006");
+               
+               if(sRe006=="P"){
+                  	//调用关联人第三方数据判断007
+			        var sRe007 = RunMethod("CBBusinessManage","RuleSetCheckDesicion",sSerialNo+",MSG,007");
+               }else if(sRe006=="D"){
+                
+			   }else{
+                  alert(sRe006);
+			      return;
+               }
+			}else if(sRe005=="D"){
+            
+			}else{
+				alert(sRe005);
+			    return;
+			}
+		    
+			sPhaseAction = RunMethod("CBBusinessManage","ChangeAheadWillFlag",sSerialNo+","+sFlag+","+sUserID+",,,,,,,"+centerId);
+			if(sPhaseAction == "Success"){
+				//先审后签，需要提交流程
+				if("DISP"==sBusinessChannel){
+					var sPhaseAction = PopPage("/Common/WorkFlow/SubmitDialogSecond.jsp?SerialNo="+sftSerialNo,"","dialogWidth=34;dialogHeight=22;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+					if(sPhaseAction=="" || sPhaseAction=="_CANCEL_" || typeof(sPhaseAction)=="undefined") {
+						alert("流程提交失败");
+						return;
+					}
+				}
+				alert("提交成功！");
+				top.close();
+			}else{
+				alert("提交失败！");
+				reloadSelf();
+			}
+		}else{
+			reloadSelf();
+		}
+		
+	}
+	
+	
+	var sTempSaveFlag1 ="";
+	function saveRecordTemp()
+	{	
+		var sSerialNo = getItemValue(0,getRow(),"SerialNo");
+		Beforesave();
+		sTempSaveFlag1='1';
+		//0：表示第一个dw
+		setNoCheckRequired(0);  //先设置所有必输项都不检查
+		setItemValue(0,getRow(),'TempSaveFlag',"1");//暂存标志（1：是；2：否）
+		setReckonMonthlyIncome();
+		//var sTempSaveFlag1='2';
+		 var ssssChannel = getItemValue(0,getRow(),"Channel");
+		    if(ssssChannel == "001000"){
+		    	setItemValue(0,getRow(),"ChannelDeputy_Certid","");
+		    	setItemValue(0,getRow(),"ChannelDeputy_Name","");
+		    	setItemValue(0,getRow(),"ChannelDeputy_Telephone","")
+			}
+		    
+   	    //20171124 ex-yijiangpeng 新天眼增加字段； 保存时校验客户类型为自雇人士”岗位职称“是否录入，如未录入则弹出”自雇人士需选择岗位职称！“，无法建档成功
+	    if(!verifyEmployeeType()) return;
+		    
+		    //add by zhoulongjiang 20171023 存储可疑高亮信息 begin
+			var boxes = myiframe0.document.getElementsByName("highlight");
+		    
+			var colnames="";
+		    for(i=0;i<boxes.length;i++){
+		    	if(boxes[i].checked){
+		    		colnames =colnames + boxes[i].value+"$";
+		    	}
+		    }
+		    if(""!=colnames){
+		    	RunMethod("PublicMethod","UpdateColValue","String@DOUBTINFO@"+colnames+",AheadWill_Info,String@SerialNo@"+sSerialNo);
+		    }
+		    //add by zhoulongjiang 20171023 存储可疑高亮信息 end
+		    
+		as_save("myiframe0","doReturn();"); //再暂存 
+	}
+	
+	//暂存保存后触发后续事件方法
+	function doReturn()
+	{
+	    var flag = "<%=sFlag%>";
+	    if('PrintApply'!=flag){beforeLoading();}
+	    setNeedCheckRequired(1);//最后再将必输项设置回来
+		//setItemRequired(0,getRow(),"DetailedHouseADD",false);	
+		//setItemRequired(0,getRow(),"HouseADDName",false); 
+		var AddressName =  getItemValue(0,getRow(),"Address");
+		setItemValue(0,getRow(),"NativePlace",AddressName);
+		setItemValue(0,getRow(),"RegistAddress",AddressName);	
+		//20161231_客户曾用名信息映射到关联人征信授权表(RelatedPerson_info)
+	    getRelatedPersonInfo_NameUsedBefore();
+	    //20161231_配偶信息映射到关联人征信授权表(RelatedPerson_info)
+	    getRelatedPersonInfo_Spouse();
+		//HouseTypeChanged();
+	   reloadSelf();
+	    
+	 
+	}
+	
+	function ReturnBack()
+	{
+	   //OpenPage("/CreditManage/CreditContract/SaleReachList.jsp","right","");
+	   self.close();
+
+	}
+	//20161215_面签一体化	huangweibin
+	function checkGuarantor(){
+		var sSerialNo = getItemValue(0,getRow(),"SerialNo");
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		if(sBusinessType=="1010200" || sBusinessType=="1010210"){
+			var count = RunMethod("CBBusinessManage","GetGuarantorCount",sSerialNo);
+			if(count>0){
+				return true;
+			}else {
+				var tips=confirm("担保人信息未填写,是否确认提交?");
+				 if(tips==true){
+					 return true;
+				 }else{
+					 return false;
+				 }
+			}
+		}else{
+			return true;
+		}
+	}
+	/*~[Describe=保单校验;InputParam=无;OutPutParam=无;]~*/
+	function checkEffectiveDate(){
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		//天眼一期，陈豪  取消保单时间校验
+	//	if(sBusinessType=="1010080"){
+		//	setItemRequired(0,getRow(),"EffectiveDate",true);
+	//	}else {
+			setItemValue(0,getRow(),"EffectiveDate","");
+			setItemRequired(0,getRow(),"EffectiveDate",false);
+			setItemReadOnly(0,getRow(),"EffectiveDate",true);
+			setItemDisabled(0,getRow(),"EffectiveDate",true);
+		//}
+		if(sBusinessType == "1010110"){
+			setItemRequired(0,getRow(),"creditinstallmentflag",true);
+			}
+	}
+	
+	/*~[Describe=联系人关系;InputParam=无;OutPutParam=无;]~*/
+	function checkRelationShip(){
+		var sFamilyRelationShip = getItemValue(0,getRow(),"FamilyRelationShip");
+		var sNoFamilyRelationShip = getItemValue(0,getRow(),"NoFamilyRelationShip");
+		if(sFamilyRelationShip=="0310"){
+			setItemRequired(0,getRow(),"remark1",true);
+		}else {
+			setItemRequired(0,getRow(),"remark1",false);
+		}
+		
+		if(sNoFamilyRelationShip=="0310"){
+			setItemRequired(0,getRow(),"remark2",true);
+		}else {
+			setItemRequired(0,getRow(),"remark2",false);
+		}
+	}
+	
+	</script>
+<%/*~END~*/%>
+
+
+<%/*~BEGIN~可编辑区~[Editable=false;CodeAreaID=Info07;Describe=自定义函数;]~*/%>
+
+	<script language=javascript>
+     /*~[Describe=新增输入数据;InputParam=无;OutPutParam=无;]~*/
+	var Telephone = "";
+	var Certid = "";
+	function beforeLoading()
+	{
+		Telephone = getItemValue(0,getRow(),"ChannelDeputy_Telephone");
+		Certid = getItemValue(0,getRow(),"ChannelDeputy_Certid");
+		var tel = plusXing (Telephone,3,2);
+		var cId = plusXing (Certid,6,2);
+		//alert(tel);
+		//alert(cId);
+		setItemValue(0,getRow(),"ChannelDeputy_Telephone",tel);
+	    setItemValue(0,getRow(),"ChannelDeputy_Certid",cId);
+	}
+	function beforeLoading2()
+	{
+		<%
+			String sTelephone = Sqlca.getString("select ChannelDeputy_Telephone from aheadwill_info  where  serialno = '"+sSerialNo+"' ");
+			String sCertid = Sqlca.getString("select ChannelDeputy_Certid from aheadwill_info  where  serialno = '"+sSerialNo+"' ");
+			if (sTelephone == null) sTelephone = "";
+			if(sCertid==null)sCertid="";
+		%>
+		
+		//Telephone = getItemValue(0,getRow(),"ChannelDeputy_Telephone");
+		//Certid = getItemValue(0,getRow(),"ChannelDeputy_Certid");
+		Telephone = "<%=sTelephone%>";
+		Certid = "<%=sCertid%>";
+		
+	}
+	
+	function plusXing (str,frontLen,endLen) { 
+		var len = str.length-frontLen-endLen;
+		var xing = '';
+		for (var i=0;i<len;i++) {
+			xing+='*';
+		}
+		return str.substring(0,frontLen)+xing+str.substring(str.length-endLen);
+	}
+	function Beforesave(){
+		setItemValue(0,getRow(),"ChannelDeputy_Telephone",Telephone);
+	    setItemValue(0,getRow(),"ChannelDeputy_Certid",Certid);
+	  
+	   
+	}
+	
+	
+	function beforeInsert()
+	{
+		//initSerialNo();	
+		bIsInsert = false;
+	}
+
+	/*~[Describe=更新输入数据;InputParam=无;OutPutParam=无;]~*/
+	function beforeUpdate()
+	{
+		setItemValue(0,getRow(),"TempSaveFlag","2"); //暂存标志（1：是；2：否）
+		//华润银行控制自雇人士持股比例、员工人数、年销售额不为空--lxf
+		var sLineID = "<%=sLineID%>";
+	    if(sLineID=="RL20170414000001"){	
+			var sEmployeeType = getItemValue(0,getRow(),"EmployeeType");//客户类型
+			if(sEmployeeType=="060"){
+				setItemRequired(0,getRow(),"sharesratio",true);
+			    setItemRequired(0,getRow(),"STAFFNUMBER",true);
+			    setItemRequired(0,getRow(),"annualsales",true);
+			} 
+		}
+	}
+	
+	function initCheckbox(){
+		//只读时隐藏所有的复选框
+        var sRightType = "<%=sRightType%>";
+        var nimbleSwitch = "<%=nimbleSwitch%>";
+        var sSerialNo = "<%=sSerialNo%>";
+    	var boxes = myiframe0.document.getElementsByName("highlight");
+    	var colname = RunMethod("PublicMethod","GetColValue","DOUBTINFO" + "," + "aheadwill_info" + "," + "serialno='"+sSerialNo+"'");
+    	var colnames = colname.split("$");
+		var isSale = "<%=isSale%>";
+        if("ReadOnly"==sRightType || "1"!=nimbleSwitch){
+    	    for(i=0;i<boxes.length;i++){
+        	    boxes[i].style.display="none";
+    	    }
+    	    if("ReadOnly"==sRightType && "1"==nimbleSwitch && isSale==false){
+            	for(var i=0;i<colnames.length-1;i++){
+           			myiframe0.document.getElementById("tdR"+getRow()+"F"+getColIndex(0,colnames[i])).style.color="red";
+            	}
+    	    }
+        }else{
+        	for(var i=0;i<boxes.length;i++){
+        		for(var j=0;j<colnames.length-1;j++){
+        			if(boxes[i].value == colnames[j]){
+    	    			boxes[i].checked=true;
+       					myiframe0.document.getElementById("tdR"+getRow()+"F"+getColIndex(0,boxes[i].value)).style.color="red";
+        			}
+    	    	}
+        	}
+        }
+	}
+	
+	/*~[Describe=页面装载时，对DW进行初始化;InputParam=无;OutPutParam=无;]~*/
+	function initRow()
+	{
+		 //收件备签环节优化  利率调整方式，还款方式，还款周期 设置为固定值  lkk
+		 //String sOccurType="",sAdjustRateType="",sReturnPeriod="",sMainReturnType="";
+		 if("04" == "<%=sFlagSurface%>"){
+			if("<%=sAdjustRateType%>" == "")
+			 setItemValue(0,getRow(),"AdjustRateType","1");
+			if("<%=sMainReturnType%>" == "")
+			setItemValue(0,getRow(),"MainReturnType","1");
+			if("<%=sReturnPeriod%>" == "")
+			setItemValue(0,getRow(),"ReturnPeriod","1");
+			//2017-8-22 added by ex-yijiangpeng 设为默认值:业务类型-正常贷款 
+			if("<%=sOccurType%>" == "")
+			setItemValue(0,getRow(),"OccurType","010");
+		 }
+		// end
+
+		var flag = "<%=sFlag%>";
+		if (getRowCount(0) == 0) //如果没有找到对应记录，则新增一条，并设置字段默认值
+		{
+			as_add("myiframe0");//新增记录
+			bIsInsert = true;
+		}
+		//添加读取数据  将数据隐藏功能
+		if('PrintApply'!=flag){beforeLoading();}
+		beforeLoading2();
+		var sCheckCertID = "<%=sCheckCertID%>";
+		var sAuthorReason = "<%=sAuthorReason%>";
+		var sCertID = "<%=sCertID%>";
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		if(sCheckCertID==sCertID&&(typeof(sBusinessType)=="undefined"||sBusinessType=="")){
+			setItemValue(0,getRow(),"BusinessType","1010170");
+			setItemValue(0,getRow(),"LoanSchemeCode","<%=sLoanSchemeCode%>");
+		}
+		
+		setItemValue(0,0,"CertType","Ind01");
+		setItemValue(0,0,"SerialNo","<%=sSerialNo%>");
+		
+		//北京银行对接需求新增代码-----------------开始-----------   author：ljshan   time:2015/09/24
+		var sLineID = "<%=sLineID%>";
+		var sEmployeeType = getItemValue(0,getRow(),"EmployeeType");
+		var sEnroll = getItemValue(0,getRow(),"Enroll");//是否注册
+		var sPrimaryProduct = getItemValue(0,getRow(),"PrimaryProduct");//一级产品
+		
+		if(sEmployeeType=='060'){//自雇人士客户
+		    setItemRequired(0,getRow(),"Enroll",true);
+		    setItemDisabled(0,getRow(),"Enroll",false);
+		    if(sEnroll=='1'){
+		       setItemDisabled(0,getRow(),"TakenCase",false);
+		    }
+		}else{
+		    setItemRequired(0,getRow(),"Enroll",false);
+		    setItemDisabled(0,getRow(),"Enroll",true);
+		}
+
+
+		if(sLineID=="RL20150629000003"){
+			if(sEmployeeType == '060'){
+				setItemRequired(0,getRow(),"EnterpCustomerName",true);
+				setItemRequired(0,getRow(),"EnterpCertType",true);
+				setItemRequired(0,getRow(),"EnterpCertID",true);
+				setItemRequired(0,getRow(),"BusinessLicense",true);
+				setItemRequired(0,getRow(),"ExpiryDate",true);
+				setItemRequired(0,getRow(),"StaffNumber",true);
+				setItemRequired(0,getRow(),"RegisterCapital",true);
+				setItemRequired(0,getRow(),"OperatingSiteOwnership",true);
+				
+				setItemRequired(0,getRow(),"Enroll",true);
+		        setItemDisabled(0,getRow(),"Enroll",false);
+		        if(sEnroll=='1'){
+		           setItemDisabled(0,getRow(),"TakenCase",false);
+		        }
+				
+				var sWorkCorp = getItemValue(0,getRow(),"WorkCorp");
+				var sEnterpCustomerName = getItemValue(0,getRow(),"EnterpCustomerName");
+				if(typeof(sEnterpCustomerName) == "undefined" || sEnterpCustomerName == ""){
+					setItemValue(0,0,"EnterpCustomerName",sWorkCorp);
+				}
+				
+				var sRegisterCapital = getItemValue(0,getRow(),"RegisterCapital");
+				if(typeof(sRegisterCapital) == "undefined" || sRegisterCapital == ""){
+					setItemValue(0,getRow(),"RegisterCapital","1000000.00");
+				}
+				
+				var sExpiryDate = getItemValue(0,getRow(),"ExpiryDate");
+				if(typeof(sExpiryDate) == "undefined" || sExpiryDate == ""){
+					setItemValue(0,getRow(),"ExpiryDate","2030/01/01");
+				}
+				
+				var sBusinessLicense = getItemValue(0,getRow(),"BusinessLicense");
+				if(typeof(sBusinessLicense) == "undefined" || sBusinessLicense == ""){
+					setItemValue(0,getRow(),"BusinessLicense","10000000");
+				}
+			}else{
+			   setItemRequired(0,getRow(),"Enroll",false);
+		       setItemDisabled(0,getRow(),"Enroll",true);
+			}
+		}
+
+		//北京银行对接需求新增代码-----------------开始-----------   author：ljshan   time:2015/09/24
+		//非安信小贷、润通小贷合作方  一级产品 默认填充
+		if(sLineID!="RL20151210000001" && sLineID != "RL20170104000002"){
+			setItemValue(0,0,"PrimaryProduct","010"); //默认大数时贷
+		}
+		//一级产品为房抵贷
+		if(sPrimaryProduct=="030"){
+			setItemValue(0,0,"PrimaryProduct","030"); //默认抵押贷款
+		}
+		if(sPrimaryProduct=="030"){//如果一级产品不是房抵贷
+			setItemRequired(0,getRow(),"IscommonBorrower",true);//设置"是否有共同借款人"为必输
+		    setItemDisabled(0,getRow(),"IscommonBorrower",false);//设置"是否有共同借款人"为不只读
+		}
+
+		//润通小贷合作方  一级产品 默认填充   shanliangjun 2017/01/23
+		if(sLineID == "RL20170104000002"){
+			setItemValue(0,0,"PrimaryProduct","020"); //默认小数云贷
+		}
+	
+		//随鑫贷
+        OriginalLoanAmount();
+
+        checkChannel2();//添加  渠道验证  
+	
+        //完善面签信息婚姻状况选择事件(天眼一期)	
+        if(sAuthorReason !="020" && sAuthorReason !="030"){
+	
+           HouseTypeChanged();
+	       MarriageChanged(sLineID);
+	     }
+        //初始化高亮框
+       	initCheckbox();
+ //20171124 ex-yijiangpeng 新天眼增加字段 POSTTITLE
+		setItemValue(0,0,"PostTitle","<%=sPostTitle%>");
+        
+        var sEmployeeType = "<%=sEmployeeType%>";
+		//alert("test==sEmployeeType="+sEmployeeType);
+        if("060" != sEmployeeType){
+			//alert("test==PostTitle 设置为空");
+			setItemValue(0,0,"PostTitle","");
+		}
+       
+    }  
+    //end initRow();
+    
+    
+    
+	/*20171124 ex-yijiangpeng 新天眼增加字段 POSTTITLE；  LotDetailInfo.jsp和CBApplyIndInfo.jsp共用此函数
+     需求：1、新增字段【岗位职称】（有/无），字段添加在【客户类型】后面，字段内容由征信授权带过来，字段内容为置灰状态不可编辑；
+		   a、如【客户类型】在征信授权时为自雇人士，修改为非自雇人士，则【岗位职称】字段内容清空且为置灰状态；
+		   b、如【客户类型】在征信授权时为自雇人士，后从自雇人士改为非自雇人士，后又从非自雇人士修改为自雇人士，则【岗位职称】字段带出征信授权时的信息；
+		   c、如【客户类型】在征信授权时为非自雇人士，后改为自雇人士，则【岗位职称】字段内容赋值为“有”；
+     实现办法：
+     	原来模板的EmployeeType自带了selectEmployeeType()，jsp最上面北京银行又做了替换(也包含了selectEmployeeType（）的代码)【doTemp.setHTMLStyle("EmployeeType","onChange=\"javascript:parent.EmployeeTypeChange()\"");】
+     	故在上面的2个函数里接着调用本次新增的函数，函数逻辑：
+     		1、若本次保存为“非自雇人士”，则清空置灰；
+     		2、若本次保存为“自雇人士”，则读取征信授权保存的“客户类型”和“岗位职称”：
+     			若“客户类型”为“自雇”，则回填“岗位职称”；（满足要求 b ）
+     			若“客户类型”为“非自雇”，则给默认值“1-是”；（满足要求 c ）
+      模拟场景为：(z-自雇|f-非自雇)
+|-------------|-----------------|-----------------|-----------------|-----------------|
+|  建档保存	  |	      修改	    	|	      修改		  |	      修改			|	      修改		  |
+|-------------|-----------------|-----------------|-----------------|-----------------|
+|客户类型 |岗位 |		第1次|岗位  	|   第2次|	岗位      |   第3次	|	岗位	|   第4次    |  岗位   |
+|   z	 | 0  |  	  f  | 	    |     z	 |   0	  |    f	|       |    z	  |	   0  |
+|   	 | 1  |  		 | 	    |     	 |   1	  |      	|	    | 		  |    1  |
+|--------|----|----------|------|--------|--------|---------|-------|---------|-------|
+|   f	 |    |   	z	 |   1	|     f  |		  |    z	|    1	|    f	  |       |
+|--------|----|----------|------|--------|--------|---------|-------|---------|-------|
+   */
+	function ChoosePostTitleByEmployeeType()
+	{
+		var sEmployeeType = getItemValue(0,getRow(),"EmployeeType"); 
+		var sAuthorEmployeeType = "<%=sAuthorEmployeeType%>";//征信授权保存的客户类型
+		var sAuthorPostTitle = "<%=sAuthorPostTitle%>";      //征信授权保存的岗位职称
+		if("060" != sEmployeeType){		//1、若本次保存为“非自雇人士”，则清空置灰；
+			setItemValue(0,0,"PostTitle","");
+		}else{	//2、若本次保存为“自雇人士”，则读取征信授权保存的“客户类型”和“岗位职称”：
+			if("060" == sAuthorEmployeeType){ 		//若“客户类型”为“自雇”，则回填“岗位职称”；（满足要求 b ）
+				setItemValue(0,0,"PostTitle",sAuthorPostTitle); 
+			}else if("060" != sAuthorEmployeeType){	//若“客户类型”为“非自雇”，则给默认值“1-是”；（满足要求 c ）
+				setItemValue(0,0,"PostTitle","1");		
+			}
+		}
+	}
+
+    /*~[Describe=弹出省份、直辖市、自治区选择窗口，并置将返回的值设置到指定的域;InputParam=无;OutPutParam=无;]~*/
+	function getRegionCode9()
+	{	
+		//校验房产的地址按钮
+		var houseFlag = getItemValue(0,getRow(),"HouseFlag");
+		
+		if(houseFlag=="0"||houseFlag==""){
+			alert("房产地址应该为空");
+			setItemValue(0,0,"HouseADDName","");
+			return;
+		}
+		sParaString = "CodeNo"+",AreaCode";			
+		var sReturn=setObjectValue("SelectAreaCodeApply",sParaString,"@HouseProvinces@0@HouseADDName@1",0,0,"");
+		var sAreaCodeNo = sReturn.split("@");
+	    var sHouseADDName=RunMethod("CBBusinessManage","getAreaCodeName",sAreaCodeNo[0]);
+	   
+	    setItemValue(0,0,"HouseADDName",sHouseADDName);
+	}
+    
+	
+	/*~[Describe=对输入框进行校验;InputParam=无;OutPutParam=返回boolean型变量;]~*/
+    function ValidityCheck()
+    {
+    	var spaymentmode = getItemValue(0,getRow(),"paymentmode");
+		var sPayMentCardID = getItemValue(0,getRow(),"PayMentCardID");
+		var sGatheringName = getItemValue(0,getRow(),"GatheringName");
+		var sGatheringCardID = getItemValue(0,getRow(),"GatheringCardID");
+		var sAccountInBank = getItemValue(0,getRow(),"AccountInBank");
+		if(typeof(spaymentmode)=="undefined"||spaymentmode==""){
+			alert("请选择支付方式!");
+			return false;
+		}
+		if(spaymentmode=="0"){
+			if(typeof(sPayMentCardID)=="undefined"||sPayMentCardID==""){
+				alert("请输入还款卡号!");
+				return false;
+			}
+		}
+		if(spaymentmode=="1"){
+			if(typeof(sPayMentCardID)=="undefined"||sPayMentCardID==""){
+				alert("请输入还款卡号!");
+				return false;
+			}
+			if(typeof(sGatheringName)=="undefined"||sGatheringName==""){
+				alert("请输入收款账户户名!");
+				return false;
+			}
+			if(typeof(sGatheringCardID)=="undefined"||sGatheringCardID==""){
+				alert("请输入收款卡号/账号!");
+				return false;
+			}
+			if(typeof(sAccountInBank)=="undefined"||sAccountInBank==""){
+				alert("请输入收款行名称!");
+				return false;
+			}				
+			
+		}
+		//业务品种
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		var sLineID = "<%=sLineID%>";
+		var sSchoolName = getItemValue(0,getRow(),"SchoolName");//毕业学校
+		var sEduDegree = getItemValue(0,getRow(),"EduDegree");//学位
+		var sGraduateTime = getItemValue(0,getRow(),"GraduateTime");//毕业时间
+		if(sBusinessType=="1010140"){
+			if(typeof(sSchoolName)=="undefined"||sSchoolName==""){
+				alert("学历贷请选择毕业学校!");
+				return false;
+			}
+			if(typeof(sEduDegree)=="undefined"||sEduDegree==""){
+				alert("学历贷请选择学位!");
+				return false;
+			}
+			if(typeof(sGraduateTime)=="undefined"||sGraduateTime==""){
+				alert("学历贷请选择毕业时间!");
+				return false;
+			}				
+		}
+		
+		//证件到期日必须大于当前日期
+		sCertificateduedate = getItemValue(0,getRow(),"Certificateduedate");//证件到期日
+		sToday = "<%=sBusinessDate%>";//当前日期
+		if(typeof(sCertificateduedate) != "undefined" && sCertificateduedate != "" )
+		{
+			if(sCertificateduedate <= sToday)
+			{
+				alert("证件已过期!");
+				return false;
+			}
+		}
+		
+		//当客户婚姻状况为“已婚”“再婚”时，配偶姓名和配偶身份证号设置为必填(20:已婚、22:再婚)
+		var sMarriage = getItemValue(0,getRow(),"Marriage");//婚姻状况
+		var sSpouseName = getItemValue(0,getRow(),"SpouseName");//配偶姓名
+		var sSpouseID = getItemValue(0,getRow(),"SpouseId");//配偶身份证号码
+		//var sFamilyRelationShip = getItemValue(0,getRow(),"FamilyRelationShip");//亲属联系人关系
+		//var sFamilyName = getItemValue(0,getRow(),"FamilyName");//亲属联系人姓名
+		var sISSpouseAware = getItemValue(0,getRow(),"ISSpouseAware");//配偶是否知悉贷款
+		var sSpousePhone = getItemValue(0,getRow(),"SpousePhone");//配偶手机号
+		var spouseIdType = getItemValue(0,getRow(),"spouse_id_type");//配偶证件类型
+		
+		//非华兴银行、德州银行、东莞银行、苏宁金融、稠州银行、润通小贷
+		if((sMarriage == "20" || sMarriage == "22") && sLineID!="RL20141128000002" && sLineID!="RL20160413000004" && "RL20161206000001"!=sLineID && "RL20161202000001"!=sLineID && "RL20161214000001"!=sLineID && sLineID!="RL20170104000002")
+		{      
+			//安信小贷
+			if(sLineID=="RL20151210000001"){
+			    if(typeof(sSpouseName)=="undefined"||sSpouseName==""){
+					alert("请填写配偶姓名!");
+					return false;
+				  }
+				 if(typeof(sISSpouseAware)=="undefined"||sISSpouseAware==""){
+					alert("配偶是否知悉此项贷款不能为空!");
+					return false;
+				  }
+				  if(typeof(sSpousePhone)=="undefined"||sSpousePhone==""){
+					alert("配偶手机号码不能为空!");
+					return false;
+				  }
+				  if( !CheckPhoneCode(sSpousePhone) ){
+			      alert("配偶手机号码输入有误，请重新输入!");
+			      return false;
+		         }
+			
+			}else{
+			    //非广州银行 、九江
+				if(sLineID!="RL20151214000001"&&sLineID!="RL20151110000001"){
+					 if(typeof(sSpouseName)=="undefined"||sSpouseName==""){
+						alert("请填写配偶姓名!");
+						return false;
+					  }
+					  if(typeof(sSpouseID)=="undefined"||sSpouseID==""){
+						alert("请填写配偶证件号码!");
+						return false;
+					  }
+					  //效验配偶身份证号码填写是否正确 
+					  if(spouseIdType!=null && ("Ind01" == spouseIdType || "Ind08" == spouseIdType) && sSpouseID!=null){
+					  if(!CheckLisince(sSpouseID)){
+						 alert("配偶证件号码有误，请检查！");
+					     return false;						 
+					   }
+					   }
+					  /*
+					   //亲属关系为配偶时，校验配偶姓名和亲属联系人是否为同一人
+					   if(sFamilyRelationShip=="0301"){
+							if((typeof(sFamilyName)!="undefined"||sFamilyName!="") && sFamilyName!=sSpouseName){
+							alert("亲属联系人关系为配偶时,亲属联系人姓名和配偶姓名应该一致!");
+							return false;
+						    }
+					   }
+					   */
+				  }
+			    
+			      //添加广州银行校验
+			      if(sLineID=="RL20151214000001"){
+						 if(typeof(sSpouseName)=="undefined"||sSpouseName==""){
+								alert("请填写配偶姓名!");
+								return false;
+						 }
+						 
+					     if(typeof(sSpouseID)=="undefined"||sSpouseID==""){
+								alert("请填写配偶证件号码!");
+								return false;
+						}
+					     
+						//效验配偶身份证号码填写是否正确 
+						if(spouseIdType!=null && ("Ind01" == spouseIdType || "Ind08" == spouseIdType) && sSpouseID!=null){
+							if(!CheckLisince(sSpouseID)){
+								  alert("配偶证件号码有误，请检查！");
+							     return false;						 
+							}
+						}
+			      }
+			    
+		     }
+		}
+		
+		
+		/*
+		//婚姻状况为未婚时,亲属联系人关系不能选配偶
+		if(sMarriage == "10" && sFamilyRelationShip=="0301")
+		{      
+			    alert("婚姻状况为未婚时,亲属联系人关系不能选配偶!");
+				return false;
+		}
+		*/
+		
+				
+		//所有合作方增加配偶信息校验（天眼一期）   lx
+		if(!checkSpouseInfo(sLineID)){
+			return false;
+		}   
+		
+		var sCertID = getItemValue(0,getRow(),"CertID");
+		var sCustomerName = getItemValue(0,getRow(),"CustomerName");
+		var sSerialNo = getItemValue(0,getRow(),"SerialNo");
+		var sCertType = "Ind01";
+		/*
+    	var sMobileTelephone = getItemValue(0,getRow(),"MobileTelephone");//手机号码
+    	//var sFamilyRelationPhone = getItemValue(0,getRow(),"FamilyRelationPhone");//亲属联系人手机号码
+    	//var sNoFamilyMobileTelephone = getItemValue(0,getRow(),"NoFamilyMobileTelephone");//其他联系人手机号码  
+    	var sTelephone = getItemValue(0,getRow(),"Telephone");//人事部联系手机号  
+    	var sWorkMatePhone = getItemValue(0,getRow(),"WorkMatePhone");
+    	var sCertID = getItemValue(0,getRow(),"CertID");
+    	var sCertType = "Ind01";
+    	var sCustomerName = getItemValue(0,getRow(),"CustomerName");
+    	var sSerialNo = getItemValue(0,getRow(),"SerialNo");
+	    //校验手机号码 
+	     if( !CheckPhoneCode(sMobileTelephone) ){
+			alert("手机号码输入有误，请重新输入!");
+			return false;
+		}
+		if( !CheckPhoneCode(sTelephone) ){
+			alert("人事部联系手机号码输入有误，请重新输入!");
+			return false;
+		}
+		//if( !CheckPhoneCode(sFamilyRelationPhone) ){
+			//alert("亲属联系人手机号码输入有误，请重新输入!");
+			//return false;
+		//}
+		//if( !CheckPhoneCode(sNoFamilyMobileTelephone) ){
+			//alert("其他联系人手机号码输入有误，请重新输入!");
+			//return false;
+		//}
+		if( !CheckPhoneCode(sWorkMatePhone)&& sLineID=="RL20151210000001" ){
+			alert("同事手机号码输入有误，请重新输入!");
+			return false;
+		}
+	*/
+	    var sReturn = RunMethod("CBBusinessManage","CheckAheadTaskWill",sCertID+ "," + sCertType + "," + sCustomerName + "," + sSerialNo);
+		if(sReturn>0){
+			alert("该用户存在在途的申请！");
+			return false;
+		}
+		//廊坊银行开户地址校验
+		var sLineID = "<%=sLineID%>";
+		if(sLineID=="RL20150105000002"){
+			var sFamilyAdd = getItemValue(0,getRow(),"FamilyAdd");
+			if(sFamilyAdd.length>20){
+				alert("居住详细地址超过20个字符，请重新输入");
+				return false;
+			}
+		}
+		
+		//北京银行对接需求新增代码-----------------开始-----------   author：ljshan   time:2015/09/24
+		//校验北京银行营业执照到期日
+		var sEmployeeType = getItemValue(0, getRow(), "EmployeeType"); //客户类型
+		if(sLineID=="RL20150629000003" && sEmployeeType =="060"){
+			var sExpiryDate = getItemValue(0,getRow(),"ExpiryDate");
+			if(sExpiryDate<= "<%=sBusinessDate%>" && typeof(sExpiryDate) != "undefined" && sExpiryDate != ""){
+				alert("营业执照到期日必须迟于当前日期!");
+				return false;		
+			}
+		
+		
+			//校验如果企业证件类型是营业执照 则企业证件编号和工商营业执照号码必须一致。
+			var sEnterpCertType = getItemValue(0,getRow(),"EnterpCertType");
+			if(sEnterpCertType == "Ent02"){
+				var sEnterpCertID = getItemValue(0,getRow(),"EnterpCertID");
+				var sBusinessLicense = getItemValue(0,getRow(),"BusinessLicense");
+				if(sEnterpCertID != sBusinessLicense){
+					alert("如果企业证件类型是营业执照,则企业证件编号和工商营业执照号码必须一致!");
+					return false;
+				}
+			}
+		}
+		//北京银行对接需求新增代码-----------------结束-----------   author：ljshan   time:2015/09/24
+		
+		//产品为房帮贷定制版时准项目必输 
+		if("1010160"==sBusinessType){
+		  var sProjectNo = getItemValue(0,getRow(),"ProjectNo");	
+		   if(typeof(sProjectNo)=="undefined"||sProjectNo==""){
+			   alert("请选择准入项目名称!");
+			   return false;
+		   }						
+		}
+		
+		//20161231_所有合作机构 增加效验（申请金额需控制不超过50万，否则无法保存并提交)
+		var sBusinessSumAll = getItemValue(0,getRow(),"BusinessSum");//申请金额
+		var sPrimaryProduct="<%=sPrimaryProduct%>"; //获取一级产品
+		if(sPrimaryProduct=="030" && sBusinessType=="1010210"){
+			if(sBusinessSumAll>5000000){
+				alert("申请金额不能超过500万!");
+				return false;
+			}
+		}else if(sBusinessSumAll>500000 ){
+		   alert("申请金额不能超过50万!");
+		   return false;
+		}
+		
+		//抵押贷效验  借款人年龄+贷款期限大于70年
+		if(sPrimaryProduct=="030"){
+		  var sTerm = getItemValue(0,getRow(),"LoanTerm");//贷款期限			
+	      var sCertID = getItemValue(0,getRow(),"CertID");//主借款人身份证号码
+	      var now = new Date();
+		  var iCurYear = now.getYear();
+		  var pawner= parseInt(sCertID.substring(6,10));//借款人年龄
+		  pawner=iCurYear-pawner;
+		  sTerm=parseInt(sTerm/12);		  
+			if(parseInt(pawner)+parseInt(sTerm)>70){
+				alert("借款人年龄+贷款期限大于70年");
+				//return false;
+			}
+		}
+		
+	    var sEmployeeType = getItemValue(0,getRow(),"EmployeeType");//客户类型
+	    var sEnroll = getItemValue(0,getRow(),"Enroll");//是否注册
+		var sTakenCase = getItemValue(0,getRow(),"TakenCase");//占股情况
+
+		if(sEmployeeType=='060' && sEnroll==""){//自雇人士客户
+		    alert("是否注册不能为空！");
+			return false;
+		}
+
+		if(sTakenCase=="" && sEnroll=="1" && sEmployeeType=='060'){//当是否注册为“是”时，占股情况不能为空
+		    alert("占股情况不能为空！");
+			return false;
+		}
+		
+       //天眼一期（效验配偶身份证号码与主借款号码是否一致提示） 
+        var sCertID = getItemValue(0,getRow(),"CertID");//主借款人身份证号码
+		var sSpouseID = getItemValue(0,getRow(),"SpouseId");//配偶身份证号码
+		var spouseIdType = getItemValue(0,getRow(),"spouse_id_type");//配偶证件类型
+		   //判断条件  主借款人与配偶 身份证号码都不为空 并且 配偶证件类型为身份证 才作判断
+	       if((sCertID!=null||sCertID!="")&&(sSpouseID!=null||sSpouseID!="")&&spouseIdType=="Ind01"){
+	    	   if(sCertID==sSpouseID){
+	    		   alert("主借款人的身份证号码与配偶的身份证号码不能一致,请重新输入！");
+	    		   return false;
+	    	   }
+	       }
+	       
+	   //天眼二期产品控制：(2017/04/05修改bug)
+  		var sPrimaryProduct = getItemValue(0,getRow(),"PrimaryProduct");//一级产品
+  		var sObjectNo = getItemValue(0,getRow(),"SerialNo");// 申请编号
+  
+ 		if(sPrimaryProduct !=null && sPrimaryProduct !="" && sBusinessType !=null && sBusinessType !=""){
+     		//判断是否评分
+     		var sRes = RunMethod("CBBusinessManage","doBusinessTypeScore",sObjectNo);
+     
+     		if(sRes>0.0){
+          		var sReturn = RunMethod("CBBusinessManage","doBusinessType",sObjectNo+","+sPrimaryProduct+","+sBusinessType);
+             
+    			if(sReturn == "Null"){
+       				if(confirm("产品不为产品优选推出的产品,确认要保存？")){
+        				return true;
+     				}
+        		return false;
+    			}
+     		}
+  		}
+    	return true; 
+    }
+	
+    //身份证正则表达校验
+	function isCardNo(){
+		var idcard = getItemValue(0,getRow(),"CertID");
+		
+		if(checkIdcard(idcard)!="验证通过!")	return false;
+	
+		return true;
+	}
+
+	//身份证
+	function checkIdcard(idcard){ 
+			var Errors=new Array( 
+								"验证通过!", 
+								"身份证号码位数不对!", 
+								"身份证号码出生日期超出范围或含有非法字符!", 
+								"身份证号码校验错误!", 
+								"身份证地区非法!" 
+								); 
+			var area={11:"北京",12:"天津",13:"河北",14:"山西",15:"内蒙古",21:"辽宁",22:"吉林",23:"黑龙江",31:"上海",32:"江苏",33:"浙江",34:"安徽",35:"福建",36:"江西",37:"山东",41:"河南",42:"湖北",43:"湖南",44:"广东",45:"广西",46:"海南",50:"重庆",51:"四川",52:"贵州",53:"云南",54:"西藏",61:"陕西",62:"甘肃",63:"青海",64:"宁夏",65:"新疆",71:"台湾",81:"香港",82:"澳门",91:"国外"} 
+								 
+			var idcard,Y,JYM; 
+			var S,M; 
+			var idcard_array = new Array(); 
+			idcard_array     = idcard.split("");
+			
+			//地区检验 
+			if(area[parseInt(idcard.substr(0,2))]==null){
+				alert(Errors[4]);
+				return Errors[4];
+			}
+			 
+			//身份号码位数及格式检验 
+			switch(idcard.length){
+			case 15: 
+				if((parseInt(idcard.substr(6,2))+1900) % 4 == 0 || ((parseInt(idcard.substr(6,2))+1900) % 100 == 0 && (parseInt(idcard.substr(6,2))+1900) % 4 == 0 )){ 
+					ereg=/^[1-9][0-9]{5}[0-9]{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2][0-9]|3[0-1])|(04|06|09|11)(0[1-9]|[1-2][0-9]|30)|02(0[1-9]|[1-2][0-9]))[0-9]{3}$/;//测试出生日期的合法性 
+				}else{ 
+					ereg=/^[1-9][0-9]{5}[0-9]{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2][0-9]|3[0-1])|(04|06|09|11)(0[1-9]|[1-2][0-9]|30)|02(0[1-9]|1[0-9]|2[0-8]))[0-9]{3}$/;//测试出生日期的合法性 
+				} 
+			 
+				if(ereg.test(idcard)){
+					alert(Errors[0]);
+					return Errors[0]; 
+			        
+				}else{ 
+					alert(Errors[2]);
+					return Errors[2];  
+				}
+				break; 
+			case 18: 
+				//18位身份号码检测 
+				//出生日期的合法性检查  
+				if ( parseInt(idcard.substr(6,4)) % 4 == 0 || (parseInt(idcard.substr(6,4)) % 100 == 0 && parseInt(idcard.substr(6,4))%4 == 0 )){ 
+					ereg=/^[1-9][0-9]{5}19[0-9]{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2][0-9]|3[0-1])|(04|06|09|11)(0[1-9]|[1-2][0-9]|30)|02(0[1-9]|[1-2][0-9]))[0-9]{3}[0-9Xx]$/;//闰年出生日期的合法性正则表达式 
+				}else{
+					ereg=/^[1-9][0-9]{5}19[0-9]{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2][0-9]|3[0-1])|(04|06|09|11)(0[1-9]|[1-2][0-9]|30)|02(0[1-9]|1[0-9]|2[0-8]))[0-9]{3}[0-9Xx]$/;//平年出生日期的合法性正则表达式 
+				} 
+				if(ereg.test(idcard)){//测试出生日期的合法性 
+					//计算校验位 
+					S  =  (parseInt(idcard_array[0]) + parseInt(idcard_array[10])) * 7 
+						+ (parseInt(idcard_array[1]) + parseInt(idcard_array[11])) * 9 
+						+ (parseInt(idcard_array[2]) + parseInt(idcard_array[12])) * 10 
+						+ (parseInt(idcard_array[3]) + parseInt(idcard_array[13])) * 5 
+						+ (parseInt(idcard_array[4]) + parseInt(idcard_array[14])) * 8 
+						+ (parseInt(idcard_array[5]) + parseInt(idcard_array[15])) * 4 
+						+ (parseInt(idcard_array[6]) + parseInt(idcard_array[16])) * 2 
+						+  parseInt(idcard_array[7]) * 1  
+						+  parseInt(idcard_array[8]) * 6 
+						+  parseInt(idcard_array[9]) * 3 ; 
+					Y    = S % 11; 
+					M    = "F"; 
+					JYM  = "10X98765432"; 
+					M    = JYM.substr(Y,1);//判断校验位 
+					if(M == idcard_array[17]){
+						return  Errors[0];		//检测ID的校验位 
+					}else{
+						alert(Errors[3]);
+						return  Errors[3]; 
+			        }
+				}else{
+					alert(Errors[2]);
+					return Errors[2]; 
+			    }
+				break;
+			default:
+			    alert(Errors[1]);
+				return  Errors[1]; 
+
+				break;
+			}
+		
+	}
+	
+	/*~[Describe=弹出省份、直辖市、自治区选择窗口，并置将返回的值设置到指定的域;InputParam=无;OutPutParam=无;]~*/
+	function getRegionCode()
+	{
+		sParaString = "CodeNo"+",AreaCode";			
+		var sReturn=setObjectValue("SelectAreaCodeApply",sParaString,"@WorkProvinces@0@WorkProvincesName@1",0,0,"");
+	    var sAreaCodeNo = sReturn.split("@");
+	    var sWorkProvincesName=RunMethod("CBBusinessManage","getAreaCodeName",sAreaCodeNo[0]);
+	    setItemValue(0,0,"WorkProvincesName",sWorkProvincesName);
+	}
+	
+	/*~[Describe=弹出省份、直辖市、自治区选择窗口，并置将返回的值设置到指定的域;InputParam=无;OutPutParam=无;]~*/
+	function getRegionCode2()
+	{
+		sParaString = "CodeNo"+",AreaCode";			
+		setObjectValue("SelectCodeApply",sParaString,"@FamilyProvinces@0@FamilyProvincesName@1",0,0,"");
+	}
+
+	//北京银行对接需求新增代码-----------------开始-----------   author：ljshan   time:2015/09/24
+	/*~[Describe=弹出省份、直辖市、自治区选择窗口，并置将返回的值设置到指定的域;InputParam=无;OutPutParam=无;]~*/
+	function getRegionCode3()
+	{
+		sParaString = "CodeNo"+",BJBankHKAreaCode";			
+		var sReturn=setObjectValue("SelectBJCodeApply",sParaString,"@FamilyProvinces@0@FamilyProvincesName@1",0,0,"");
+		var sAreaCodeNo = sReturn.split("@");
+	    var sFamilyProvincesName=RunMethod("CBBusinessManage","getAreaCodeBJName",sAreaCodeNo[0]);
+	    setItemValue(0,0,"FamilyProvincesName",sFamilyProvincesName);
+	}
+	
+    //北京银行对接需求新增代码 单位地址专属选择
+	/*~[Describe=弹出省份、直辖市、自治区选择窗口，并置将返回的值设置到指定的域;InputParam=无;OutPutParam=无;]~*/
+	function getRegionBJWPCode()
+	{
+		sParaString = "CodeNo"+",BJBankHKAreaCode";			
+		var sReturn=setObjectValue("SelectBJCodeApply",sParaString,"@WorkProvinces@0@WorkProvincesName@1",0,0,"");
+	    var sAreaCodeNo = sReturn.split("@");
+	    var sWorkProvincesName=RunMethod("CBBusinessManage","SelectBJCodeApply",sAreaCodeNo[0]);
+	    setItemValue(0,0,"WorkProvincesName",sWorkProvincesName);
+	}
+	//所有机构弹出居住地址-----------------开始-----------   author：liangxuan   time:2016/05/06
+	/*~[Describe=弹出省份、直辖市、自治区选择窗口，并置将返回的值设置到指定的域;InputParam=无;OutPutParam=无;]~*/
+	function getRegionCode4()
+	{
+		sParaString = "CodeNo"+",AreaCode";			
+		var sReturn=setObjectValue("SelectAreaCodeApply",sParaString,"@FamilyProvinces@0@FamilyProvincesName@1",0,0,"");
+		var sAreaCodeNo = sReturn.split("@");
+	    var sFamilyProvincesName=RunMethod("CBBusinessManage","getAreaCodeName",sAreaCodeNo[0]);
+	    setItemValue(0,0,"FamilyProvincesName",sFamilyProvincesName);
+	}
+	/*~[Describe=弹出省份、直辖市、自治区选择窗口，并置将返回的值设置到指定的域;InputParam=无;OutPutParam=无;]~*/
+	function getRegionCodehj()
+	{
+		sParaString = "CodeNo"+",AreaCode";			
+		var sReturn=setObjectValue("SelectAreaCodeApply",sParaString,"@AddressID@0@AddressName@1",0,0,"");
+		var sAreaCodeNo = sReturn.split("@");
+	    var sFamilyProvincesName=RunMethod("CBBusinessManage","getAreaCodeName",sAreaCodeNo[0]);
+	    setItemValue(0,0,"AddressName",sFamilyProvincesName);
+	}
+	//房产地址1
+	function getRegionCode5()
+	{
+		sParaString = "CodeNo"+",AreaCode";			
+		var sReturn = setObjectValue("SelectAreaCodeApply",sParaString,"@HouseAddress@0@HouseAddressName@1",0,0,"");
+		var sAreaCodeNo = sReturn.split("@");
+	   	var sFamilyProvincesName=RunMethod("CBBusinessManage","getAreaCodeName",sAreaCodeNo[0]);
+	   	setItemValue(0,0,"HouseAddressName",sFamilyProvincesName);
+	}
+	//房产地址2
+	function getRegionCode6()
+	{
+		sParaString = "CodeNo"+",AreaCode";			
+		var sReturn = setObjectValue("SelectAreaCodeApply",sParaString,"@HouseAddress2@0@HouseAddressName2@1",0,0,"");
+		var sAreaCodeNo = sReturn.split("@");
+	   	var sFamilyProvincesName=RunMethod("CBBusinessManage","getAreaCodeName",sAreaCodeNo[0]);
+	   	setItemValue(0,0,"HouseAddressName2",sFamilyProvincesName);
+	}
+	
+	//北京银行单独 房产地址1
+	function getRegionCode7()
+	{
+		sParaString = "CodeNo"+",BJBankHKAreaCode";	
+		var sReturn = setObjectValue("SelectAreaCodeApply",sParaString,"@HouseAddress@0@HouseAddressName@1",0,0,"");
+		var sAreaCodeNo = sReturn.split("@");
+	    var sFamilyProvincesName=RunMethod("CBBusinessManage","getAreaCodeBJName",sAreaCodeNo[0]);
+	    setItemValue(0,0,"FamilyProvincesName",sFamilyProvincesName);
+	}
+	//北京银行单独 房产地址2
+	function getRegionCode8()
+	{
+		sParaString = "CodeNo"+",BJBankHKAreaCode";	
+		var sReturn = setObjectValue("SelectAreaCodeApply",sParaString,"@HouseAddress2@0@HouseAddressName2@1",0,0,"");
+		var sAreaCodeNo = sReturn.split("@");
+	    var sFamilyProvincesName=RunMethod("CBBusinessManage","getAreaCodeBJName",sAreaCodeNo[0]);
+	    setItemValue(0,0,"FamilyProvincesName",sFamilyProvincesName);
+	}
+	
+	
+	
+	function EmployeeTypeChange(){
+		var sEmployeeType = getItemValue(0,getRow(),"EmployeeType");
+		if(sEmployeeType == '060'){
+			setItemRequired(0,getRow(),"EnterpCustomerName",true);
+			setItemRequired(0,getRow(),"EnterpCertType",true);
+			setItemRequired(0,getRow(),"EnterpCertID",true);
+			setItemRequired(0,getRow(),"BusinessLicense",true);
+			setItemRequired(0,getRow(),"ExpiryDate",true);
+			setItemRequired(0,getRow(),"StaffNumber",true);
+			setItemRequired(0,getRow(),"RegisterCapital",true);
+			setItemRequired(0,getRow(),"OperatingSiteOwnership",true);
+			
+			setItemRequired(0,getRow(),"Enroll",true);
+		    setItemDisabled(0,getRow(),"Enroll",false);
+			
+			var sWorkCorp = getItemValue(0,getRow(),"WorkCorp");
+			var sEnterpCustomerName = getItemValue(0,getRow(),"EnterpCustomerName");
+			if(typeof(sEnterpCustomerName) == "undefined" || sEnterpCustomerName == ""){
+				setItemValue(0,0,"EnterpCustomerName",sWorkCorp);
+			}
+			
+			var sRegisterCapital = getItemValue(0,getRow(),"RegisterCapital");
+			if(typeof(sRegisterCapital) == "undefined" || sRegisterCapital == ""){
+				setItemValue(0,getRow(),"RegisterCapital","1000000.00");
+			}
+			
+			var sExpiryDate = getItemValue(0,getRow(),"ExpiryDate");
+			if(typeof(sExpiryDate) == "undefined" || sExpiryDate == ""){
+				setItemValue(0,getRow(),"ExpiryDate","2030/01/01");
+			}
+			
+			var sBusinessLicense = getItemValue(0,getRow(),"BusinessLicense");
+			if(typeof(sBusinessLicense) == "undefined" || sBusinessLicense == ""){
+				setItemValue(0,getRow(),"BusinessLicense","10000000");
+			}
+		}else{
+			setItemRequired(0,getRow(),"EnterpCustomerName",false);
+			setItemRequired(0,getRow(),"EnterpCertType",false);
+			setItemRequired(0,getRow(),"EnterpCertID",false);
+			setItemRequired(0,getRow(),"BusinessLicense",false);
+			setItemRequired(0,getRow(),"ExpiryDate",false);
+			setItemRequired(0,getRow(),"StaffNumber",false);
+			setItemRequired(0,getRow(),"RegisterCapital",false);
+			setItemRequired(0,getRow(),"OperatingSiteOwnership",false);
+			setItemValue(0,0,"EnterpCustomerName","");
+			setItemValue(0,getRow(),"RegisterCapital","");
+			setItemValue(0,getRow(),"ExpiryDate","");
+			setItemValue(0,getRow(),"BusinessLicense","");
+			setItemValue(0,getRow(),"EnterpCertType","");
+			setItemValue(0,getRow(),"EnterpCertID","");
+			setItemValue(0,getRow(),"StaffNumber","");
+			setItemValue(0,getRow(),"OperatingSiteOwnership","");
+			
+			setItemRequired(0,getRow(),"Enroll",false);
+		    setItemDisabled(0,getRow(),"Enroll",true);
+		    setItemRequired(0,getRow(),"TakenCase",false);
+		    setItemDisabled(0,getRow(),"TakenCase",true);
+		    setItemValue(0,getRow(),"Enroll","");
+		    setItemValue(0,getRow(),"TakenCase","");
+		}
+		
+		//20171124 ex-yijiangpeng 新天眼增加字段 POSTTITLE
+		ChoosePostTitleByEmployeeType();
+		
+	}
+	//北京银行对接需求新增代码-----------------结束-----------   author：ljshan   time:2015/09/24
+    
+    //获取还款账户开户行及行号 
+	function getRepayBank()
+	{			
+		var sRepayBank = getItemValue(0,getRow(),"AccountRepayBank");		
+		if(sRepayBank == "" || typeof(sRepayBank) == "undefined"){
+			setObjectValue("SelectRepayBank2","","@AccountRepayBank@0@AccountRepayBankId@1@@2@@3@city@4@bankcode@5@@6",0,0,"");
+		}else{	
+			setObjectValue("SelectRepayBank","AccountRepayBank,"+sRepayBank,"@AccountRepayBank@0@AccountRepayBankId@1@@2@@3@city@4@bankcode@5@@6",0,0,"");
+		}
+	}
+	
+	
+	//获取还款账户开户行及行号 (安信单独使用的 需求加在天一期版本 需求提出者 :伟杰   开发者：梁烜)
+	function getRepayBankAX()
+	{			
+		var sRepayBank = getItemValue(0,getRow(),"AccountRepayBank");		
+		if(sRepayBank == "" || typeof(sRepayBank) == "undefined"){
+			setObjectValue("SelectRepayBank2","","@AccountRepayBank@0@AccountRepayBankId@1@@2@@3@city@4@bankcode@5@AccountInBank@6",0,0,"");
+		}else{	
+			setObjectValue("SelectRepayBank","AccountRepayBank,"+sRepayBank,"@AccountRepayBank@0@AccountRepayBankId@1@@2@@3@city@4@bankcode@5@AccountInBank@6",0,0,"");
+		}
+	}
+	
+	//德州银行获取还款账户开户行及行号 不将放款也默认置上
+	function getRepayBank1()
+	{			
+		var sRepayBank = getItemValue(0,getRow(),"AccountRepayBank");		
+		if(sRepayBank == "" || typeof(sRepayBank) == "undefined"){
+			setObjectValue("SelectRepayBank2","","@AccountRepayBank@0@AccountRepayBankId@1",0,0,"");
+		}else{	
+			setObjectValue("SelectRepayBank","AccountRepayBank,"+sRepayBank,"@AccountRepayBank@0@AccountRepayBankId@1",0,0,"");
+		}
+	}
+	
+		//获取收款账户开户行及行号 add ylin
+	function getInsubBank()
+	{		
+		var sInsubBank =getItemValue(0,getRow(),"AccountInsubBank");
+		if(sInsubBank == "" || typeof(sInsubBank) == "undefined"){
+			setObjectValue("SelectInsubBank2","","@AccountInsubBank@0@AccountInsubBankId@1@AccountInBank@2",0,0,"");
+		}else{
+			setObjectValue("SelectInsubBank","AccountInsubBank,"+sInsubBank,"@AccountInsubBank@0@AccountInsubBankId@1@AccountInBank@2",0,0,"");
+		}
+	}
+	
+	//获取借款人行业名称改变行业编号
+	function inputUntiKindCode(){
+	    var sUnitKind =getItemValue(0,getRow(),"UnitKind");			
+		setItemValue(0,getRow(),"UnitKindCode",sUnitKind);		
+	}
+	//获取借款人职业名称改变职业编号
+	function inputOccupationCode(){
+		var sOccupation =getItemValue(0,getRow(),"Occupation");		
+		setItemValue(0,getRow(),"OccupationCode",sOccupation);		
+	}
+	/*~[Describe=选择学校;InputParam=无;OutPutParam=无;]~*/
+	function selectSchool() {
+		var sReturn = setObjectValue("selectSchool","","@SchoolNo@0@SchoolName@1",0,0,"");
+	
+	}
+	
+	/*生成电子合同：修改者梁烜*/
+	function changeTab(){
+	            var sArgs="";
+	         	var sLineID = "<%=sLineID%>";
+	         	var sListTempletNo=""; //模板 
+		         //获取参数值
+		       // var sSerialNo = RunMethod("CBBusinessManage","FetchContractSerialNo","");	//文本合同号
+			    var sCustomerName =getItemValue(0,getRow(),"CustomerName");	//客户姓名
+			    var sCertID =getItemValue(0,getRow(),"CertID");	           //身份证号码
+			    var sBusinessSum =getItemValue(0,getRow(),"BusinessSum"); //贷款金额
+                var sFamilyAdd =getItemValue(0,getRow(),"FamilyAdd"); // 联系地址
+                var sFamilyZIP =getItemValue(0,getRow(),"FamilyZIP");  //邮政编码  
+                var sMobileTelephone =getItemValue(0,getRow(),"MobileTelephone");	//手机号码
+                var sPayMentCardID =getItemValue(0,getRow(),"PayMentCardID");  //还款账号
+        	    var sSalesManager =getItemValue(0,getRow(),"OperateUserName");	// 客户经理
+        	    var sSalesManagerPhone =getItemValue(0,getRow(),"SalesManagerPhone");	// 客户经理手机号码
+        	    var sBusinessAssistant=getItemValue(0,getRow(),"BusinessAssistantName"); //	业务助理	  	    
+        	    var sSaleTeamID=getItemValue(0,getRow(),"SaleTeamID"); //	营销单位编码	     	    
+        	    
+        	   sArgs=sCustomerName+","+sCertID+","+sBusinessSum+","+sFamilyAdd+","+sFamilyZIP+","+sMobileTelephone+","+sPayMentCardID+","+sSalesManager+","+sSalesManagerPhone+","+sBusinessAssistant+","+sSaleTeamID;
+	
+		//北京银行
+		if(sLineID=="RL20150629000003"){
+                 sListTempletNo="NewEDOCCreateBJ";  
+        	     var sLoanTerm =getItemValue(0,getRow(),"LoanTerm"); //	贷款期限
+        	     var sPurpose =getItemValue(0,getRow(),"Purpose"); //贷款用途	
+        	     var sAccountRepayBank =getItemValue(0,getRow(),"AccountRepayBank"); //	还款帐号开户行
+        	     var sAcountRepayName =getItemValue(0,getRow(),"AcountRepayName"); //还款帐号户名
+        	     var sSex =getItemValue(0,getRow(),"Sex"); //性别         	     
+        	     var sCertIDNumber=getItemValue(0,getRow(),"CertID"); //证件号码
+        	     var sFamilyTel =getItemValue(0,getRow(),"FamilyTel"); //家庭固话 
+        	     var sFamilyProvincesName =getItemValue(0,getRow(),"FamilyProvincesName"); //居住地址
+        	     var sWorkCorp =getItemValue(0,getRow(),"WorkCorp"); //单位名称
+        	     var sWorkProvincesName =getItemValue(0,getRow(),"WorkProvincesName"); //单位地址
+        	     var sWorkTel =getItemValue(0,getRow(),"WorkTel"); //单位固话
+        	     var sHeadShip =getItemValue(0,getRow(),"HeadShip"); //职务名称
+        	     var sSignaddress =getItemValue(0,getRow(),"SigncenterAddressName"); //	面签地点
+        	     
+        	     var sWorkAdd =getItemValue(0,getRow(),"WorkAdd"); //单位详细地址
+        	     var sWorkZip =getItemValue(0,getRow(),"WorkZip");  //单位邮编
+        	     
+        	     sFamilyProvincesName=sFamilyProvincesName+sFamilyAdd+"/"+sFamilyZIP;
+        	     sWorkProvincesName=sWorkProvincesName+sWorkAdd+"/"+sWorkZip;        	     
+        	     
+         
+        	   sArgs=sArgs+","+sLoanTerm+","+sPurpose+","+sAccountRepayBank+","+sAcountRepayName+","+sSex+","+sCertIDNumber+","+sFamilyTel+","+sFamilyProvincesName+","+sWorkCorp+","+sWorkProvincesName+","+sWorkTel+","+sHeadShip+","+sSignaddress;
+				
+
+		//华兴银行
+		}else if(sLineID=="RL20141128000002"){
+		     sListTempletNo="NewEDOCCreateHX";  			 
+		    // sArgs=sArgs+""+","+""+","+""+","+""+","+""+","+""+","+""+","+""+","+""+","+""+","+""+","+""+","+""+","+"";
+	   
+		//廊坊银行
+		}else if(sLineID=="RL20150105000002"){   
+		        sListTempletNo="NewEDOCCreateLF";        
+        	    var sAccountRepayBank =getItemValue(0,getRow(),"AccountRepayBank"); //	还款帐号开户行
+        	    var sAccountRepayBankId =getItemValue(0,getRow(),"AccountRepayBankId"); //还款帐号开户行行号
+                var sSignaddress =getItemValue(0,getRow(),"SigncenterAddressName"); //	面签地点            
+			   sArgs=sArgs+","+sAccountRepayBank+","+sAccountRepayBankId+","+sSignaddress;
+			   		   
+		//大桔网
+		}else if(sLineID=="RL20150331000005"){	
+		      sListTempletNo="NewEDOCCreateDJ";  
+        	  var sAccountRepayBank =getItemValue(0,getRow(),"AccountRepayBank"); //	还款帐号开户行
+        	  var sSignaddress =getItemValue(0,getRow(),"SigncenterAddressName"); //	面签地点       	    	
+			 sArgs=sArgs+","+sAccountRepayBank+sSignaddress;
+		}
+		
+		//调用合同录入界面（需求变更）
+		popComp("NewEDOCWriteInfo","/Common/EDOC/NewEDOCWriteInfo.jsp","ListTempletNo="+sListTempletNo+"&LineID="+sLineID+"&Args="+sArgs,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		
+	}
+	
+	 /*~[Describe=打印申请表;InputParam=无;OutPutParam=无;]~*/
+	function PrintApply()
+	{
+	   var sSerialNo = getItemValue(0,getRow(),"SerialNo");//流水号
+	   var sPrimaryProduct = getItemValue(0,getRow(),"PrimaryProduct");//一级产品
+	   //更新打印时间  oubangfei
+	   RunMethod("printTime","updatePrintTime",sSerialNo);
+	   var sLineID = "<%=sLineID%>";   
+		//北京银行
+		if(sLineID=="RL20150629000003"){
+			popComp("PrintAheadWillApplyBJSheet","/CreditManage/CreditContract/PrintAheadWillApplyBJSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		//华兴银行
+		}else if(sLineID=="RL20141128000002"){
+	        popComp("PrintAheadWillApplyHXSheet","/CreditManage/CreditContract/PrintAheadWillApplyHXSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		//廊坊银行
+		}else if(sLineID=="RL20150105000002"){
+		    popComp("PrintAheadWillApplyLFSheet","/CreditManage/CreditContract/PrintAheadWillApplyLFSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		//大桔网
+		}else if(sLineID=="RL20150331000005"){
+			popComp("PrintAheadWillApplyDJSheet","/CreditManage/CreditContract/PrintAheadWillApplyDJSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		//安信小贷公司
+		}else if(sLineID=="RL20151210000001"){
+			popComp("PrintAheadWillApplyAXSheet","/CreditManage/CreditContract/PrintAheadWillApplyAXSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		//九江银行
+		}else if(sLineID=="RL20151110000001"){
+			popComp("PrintAheadWillApplyJJSheet","/CreditManage/CreditContract/PrintAheadWillApplyJJSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		//广州银行
+		}else if(sLineID=="RL20151214000001"){
+		    popComp("PrintAheadWillApplyGZSheet","/CreditManage/CreditContract/PrintAheadWillApplyGZSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");		
+		//汉口银行并且一级产品为房抵贷的
+		}else if(sLineID=="RL20151021000002" && sPrimaryProduct=="030"){
+			popComp("PrintAheadWillApplyHKDYSheet","/CreditManage/CreditContract/PrintAheadWillApplyHKDYSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		//汉口银行
+		}else if(sLineID=="RL20151021000002"){
+			popComp("PrintAheadWillApplyHKSheet","/CreditManage/CreditContract/PrintAheadWillApplyHKSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		//焦作中旅
+		}else if(sLineID=="RL20151127000001"){
+			popComp("PrintAheadWillApplyJZZLSheet","/CreditManage/CreditContract/PrintAheadWillApplyJZZLSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		//德州银行
+		}else if(sLineID=="RL20160413000004"){
+			popComp("PrintAheadWillApplyDZSheet","/CreditManage/CreditContract/PrintAheadWillApplyDZSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		//四川天府银行
+		}else if(sLineID=="RL20160418000001"){
+			popComp("PrintAheadWillApplyNCSheet","/CreditManage/CreditContract/PrintAheadWillApplyNCSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+		//苏州银行
+		else if(sLineID=="RL20160427000001"){
+			popComp("PrintAheadWillApplySZSheet","/CreditManage/CreditContract/PrintAheadWillApplySZSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+		//宁波通商
+		else if(sLineID=="RL20160509000001"){
+			popComp("PrintAheadWillApplyNBTSSheet","/CreditManage/CreditContract/PrintAheadWillApplyNBTSSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+		//哈尔滨银行
+		else if(sLineID=="RL20160602000001"){
+			popComp("PrintAheadWillApplyHEBSheet","/CreditManage/CreditContract/PrintAheadWillApplyHEBSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+		//修文农社
+		else if(sLineID=="RL20160801000001"){
+			popComp("PrintAheadWillApplyXWNSSheet","/CreditManage/CreditContract/PrintAheadWillApplyXWNSSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+		//石嘴山银行
+		else if(sLineID=="RL20161029000001"){
+			popComp("PrintAheadWillApplySZSSSheet","/CreditManage/CreditContract/PrintAheadWillApplySZSSSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+		//20161201_201611020_海金社合作方对接打印申请表部分_梁烜
+		else if(sLineID=="RL20161012000001"){
+			popComp("PrintAheadWillApplyHJSSheet","/CreditManage/CreditContract/PrintAheadWillApplyHJSSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+		//@author:shanliangjun  Date:2016/12/09   version:20161229_东莞银行对接
+		else if(sLineID=="RL20161206000001"){
+		    popComp("PrintAheadWillApplyDGSheet","/CreditManage/CreditContract/PrintAheadWillApplyDGSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		}
+		//@author:shanliangjun  Date:2016/12/15   version:20170119_苏宁金融对接
+		else if(sLineID=="RL20161202000001"){
+		    popComp("PrintAheadWillApplySNJRSheet","/CreditManage/CreditContract/PrintAheadWillApplySNJRSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		}
+		//@author:shanliangjun  Date:2016/12/24   version:20170119_稠州对接
+		else if(sLineID=="RL20161214000001"){
+		    popComp("PrintAheadWillApplyCZSheet","/CreditManage/CreditContract/PrintAheadWillApplyCZSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		
+		//@author:shanliangjun  Date:2017/01/09   version:20170109_润通小贷
+		}else if(sLineID=="RL20170104000002"){
+		    popComp("PrintAheadWillApplyRTXDSheet","/CreditManage/CreditContract/PrintAheadWillApplyRTXDSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+	
+		//@author:leixufeng  Date:2017/01/10   version:20170223_湖北银行对接
+		}else if(sLineID=="RL20161207000001"){
+		    popComp("PrintAheadWillApplyHBSheet","/CreditManage/CreditContract/PrintAheadWillApplyHBSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		
+		
+		//@author:leixufeng  Date:2017/02/08   version:20170223_正勤金融对接
+		}else if(sLineID=="RL20161104000001"){
+		    popComp("PrintAheadWillApplyZQJRSheet","/CreditManage/CreditContract/PrintAheadWillApplyZQJRSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		
+	
+		//@author:leixufeng  Date:2017/02/27   version:20170323_尧都农商对接
+		}else if(sLineID=="RL20170214000001"){
+		    popComp("PrintAheadWillApplyYDNSSheet","/CreditManage/CreditContract/PrintAheadWillApplyYDNSSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");	
+		
+		//@author:leixufeng  Date:2017/04/05   version:20170420_重庆银行对接
+		}else if(sLineID=="RL20170306000002"){
+		    popComp("PrintAheadWillApplyCQSheet","/CreditManage/CreditContract/PrintAheadWillApplyCQSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		
+		//@author:leixufeng  Date:2017/04/20   version:20170506_华润银行对接
+		}else if(sLineID=="RL20170414000001"){
+		    popComp("PrintAheadWillApplyHRSheet","/CreditManage/CreditContract/PrintAheadWillApplyHRSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		
+		//@author:leixufeng  Date:2017/04/26   version:20170518_贵阳银行对接
+		}else if(sLineID=="RL20170310000002"){
+		    popComp("PrintAheadWillApplyGYSheet","/CreditManage/CreditContract/PrintAheadWillApplyGYSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		//@author:leixufeng  Date:2017/05/18   version:20170531_昆山农村商业银行对接 
+		}else if(sLineID=="RL20170516000001"){
+		    popComp("PrintAheadWillApplyKSNSSheet","/CreditManage/CreditContract/PrintAheadWillApplyKSNSSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		//@author:zhangsheng  Date:2017/07/04   version:20170727_重庆安信
+		}else if(sLineID=="RL20170516000002"){
+			popComp("PrintAheadWillApplyCQAXSheet","/CreditManage/CreditContract/PrintAheadWillApplyCQAXSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		//@author:zhangsheng  Date:2017/07/12   version:20170712_E鹿行平台
+		}else if(sLineID=="RL20170707000001"){
+			popComp("PrintAheadWillApplyELSheet","/CreditManage/CreditContract/PrintAheadWillApplyELSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}else if(sLineID=="RL20170901000001"){
+			popComp("PrintAheadWillApplyDYSheet","/CreditManage/CreditContract/PrintAheadWillApplyDYSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}else if(sLineID=="RL20171027000001"){
+			popComp("PrintAheadWillApplyCDSheet","/CreditManage/CreditContract/PrintAheadWillApplyCDSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}else if(sLineID=="RL20170912000001"){
+		popComp("PrintAheadWillApplyZYSheet","/CreditManage/CreditContract/PrintAheadWillApplyZYSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		//@author:zhangsheng  Date:2017/10/25   version:20171025_西安银行
+		}else if(sLineID=="RL20171018000005"){
+			popComp("PrintAheadWillApplyXIANSheet","/CreditManage/CreditContract/PrintAheadWillApplyXIANSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+			//@author:zhangsheng  Date:2017/10/25   version:20171025_陆金所
+		}else if(sLineID=="RL20171024000001"){
+			popComp("PrintAheadWillApplyLJSSheet","/CreditManage/CreditContract/PrintAheadWillApplyLJSSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}//汉口银行
+		else if(sLineID=="RL20151021000002"){
+		popComp("PrintAheadWillApplyHKSheet","/CreditManage/CreditContract/PrintAheadWillApplyHKSheet.jsp","SerialNo="+sSerialNo,"dialogWidth=950px;dialogHeight=900px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+	}
+	
+	}
+	
+	
+	/*~[Describe=查询业务助理理;InputParam=无;OutPutParam=无;]~*/
+	function selectAssistantUser() {
+	    var sSaleTeamID = getItemValue(0,getRow(),"SaleTeamID");
+	    if(typeof(sSaleTeamID)=="undefined"||sSaleTeamID==""){
+	    	alert("当前业务营销单位为空,请核对!");
+	    	return;
+	    }
+		var sReturn = setObjectValue("selectAssistantUser","OrgID,"+sSaleTeamID,"@BusinessAssistant@0@BusinessAssistantName@1",0,0,"");
+		if( typeof(sReturn) == "undefined" || sReturn == "_NONE_" || sReturn == "_CANCEL_" || sReturn == "_CLEAR_" ) return;
+	}
+	
+	/*~[Describe=产品诚信贷校验;InputParam=无;OutPutParam=无;]~*/
+	function selectActiveCredit(){
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		if(sBusinessType=="1010170"){
+			setItemValue(0,getRow(),"LoanSchemeCode","<%=sLoanSchemeCode%>");
+		}else{
+			setItemValue(0,getRow(),"LoanSchemeCode","");
+		}
+	}
+	
+	
+	/*~[Describe=随鑫贷;InputParam=无;OutPutParam=无;]~*/
+	function OriginalLoanAmount(){
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");//贷款品种 
+		var sPrimaryProduct = getItemValue(0,getRow(),"PrimaryProduct");//一级产品
+		var sObjectNo = getItemValue(0,getRow(),"SerialNo");// 申请编号
+		
+		if(sBusinessType == "1010110"){
+			setItemReadOnly(0,getRow(),"creditinstallmentflag",false);
+			setItemDisabled(0,getRow(),"creditinstallmentflag",false);
+		}else{
+			setItemRequired(0,getRow(),"creditinstallmentflag",false);
+			setItemReadOnly(0,getRow(),"creditinstallmentflag",true);
+			setItemDisabled(0,getRow(),"creditinstallmentflag",true);
+		}
+		
+		//2016-07-07修复诚信贷方法
+		selectActiveCredit();
+		selectModel();
+		
+		//天眼二期产品控制：
+		//if(sPrimaryProduct !=null && sPrimaryProduct !="" && sBusinessType !=null && sBusinessType !=""){
+		   //判断是否评分
+		   //var sRes = RunMethod("CBBusinessManage","doBusinessTypeScore",sObjectNo);
+		   
+		  // if(sRes>0.0){
+		      //  var sReturn = RunMethod("CBBusinessManage","doBusinessType",sObjectNo+","+sPrimaryProduct+","+sBusinessType);
+	           //if(sReturn == "Null"){
+				 //  alert("产品不符合评分要求！");
+				//}
+		   //}
+		//}
+	}
+	
+	
+	
+	/*~[Describe=房产信息2校验控制;InputParam=无;OutPutParam=无;]~*/
+	function checkHouseCertificate2(){
+		var sHouseCertificate2 = getItemValue(0,getRow(),"HouseCertificate2");
+		var sHouseAddressName2 = getItemValue(0,getRow(),"HouseAddressName2");
+		var sHouseAddressDetail2 = getItemValue(0,getRow(),"HouseAddressDetail2");
+		var sHouseProperty2 = getItemValue(0,getRow(),"HouseProperty2");
+		var sGuaranty2 = getItemValue(0,getRow(),"Guaranty2");
+		var sOwnedAmount2 = getItemValue(0,getRow(),"OwnedAmount2");
+		var sOwnedProportion2 = getItemValue(0,getRow(),"OwnedProportion2");
+		var sHouseAcreage2 = getItemValue(0,getRow(),"HouseAcreage2");
+		var sAveragePrice2 = getItemValue(0,getRow(),"AveragePrice2");
+		if((sHouseCertificate2=="undefined"||sHouseCertificate2=="")&&(sHouseAddressName2=="undefined"||sHouseAddressName2=="")&&(sHouseAddressDetail2=="undefined"||sHouseAddressDetail2=="")&&(sHouseProperty2=="undefined"||sHouseProperty2=="")&&(sGuaranty2=="undefined"||sGuaranty2=="")&&(sOwnedAmount2=="undefined"||sOwnedAmount2=="")&&(sOwnedProportion2=="undefined"||sOwnedProportion2=="")&&(sHouseAcreage2=="undefined"||sHouseAcreage2=="")&&(sAveragePrice2=="undefined"||sAveragePrice2=="")){
+			setItemRequired(0,getRow(),"HouseCertificate2",false);
+			setItemRequired(0,getRow(),"HouseAddressName2",false);
+			setItemRequired(0,getRow(),"HouseAddressDetail2",false);
+			setItemRequired(0,getRow(),"HouseProperty2",false);
+			setItemRequired(0,getRow(),"Guaranty2",false);
+			setItemRequired(0,getRow(),"OwnedAmount2",false);
+			setItemRequired(0,getRow(),"OwnedProportion2",false);
+			setItemRequired(0,getRow(),"HouseAcreage2",false);
+			setItemRequired(0,getRow(),"AveragePrice2",false);
+		}else{
+			setItemRequired(0,getRow(),"HouseCertificate2",true);
+			setItemRequired(0,getRow(),"HouseAddressName2",true);
+			setItemRequired(0,getRow(),"HouseAddressDetail2",true);
+			setItemRequired(0,getRow(),"HouseProperty2",true);
+			setItemRequired(0,getRow(),"Guaranty2",true);
+			setItemRequired(0,getRow(),"OwnedAmount2",true);
+			setItemRequired(0,getRow(),"OwnedProportion2",true);
+			setItemRequired(0,getRow(),"HouseAcreage2",true);
+			setItemRequired(0,getRow(),"AveragePrice2",true);
+		}
+	}
+	/*~[Describe=随鑫贷必输控制;InputParam=无;OutPutParam=无;]~*/
+	function checkOriginalLoanAmount(){
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		if(sBusinessType=="1010190"){
+			setItemRequired(0,getRow(),"OriginalLoanAmount",true);
+		}else{
+			setItemRequired(0,getRow(),"OriginalLoanAmount",false);
+		}
+	}
+	
+	/*~[Describe=产品收入计算器信息必输控制;InputParam=无;OutPutParam=无;]~*/
+	function checkProductIncomeInfo(){
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		var creditinstallmentflag = getItemValue(0,getRow(),"creditinstallmentflag");
+		var sObjectNo = '<%=sSerialNo%>';
+		var sObjectType = "CBCreditApply";
+		//校验房产贷人工录入均价、均价字段2个不能同时为空--tangbo
+	 	var sPriceCount=RunMethod("CBBusinessManage","getAvePrice",sObjectNo);
+	 	if(sBusinessType=="1010200" || sBusinessType=="1010210"){
+	 		if(sPriceCount>0){
+	 			alert("房产信息中均价、人工录入均价不能同时为空");
+	 			return false;
+	 		}
+	 	}
+		if(sBusinessType != null && sBusinessType != ""){
+			var result = RunMethod("CBBusinessManage","CheckProductIncome",sBusinessType+","+sObjectNo+","+sObjectType+","+creditinstallmentflag);
+			if(result != null && result != ""){
+			if(result.indexOf('S') != 0){
+				alert(result.substr(2));
+				return false;
+			}else{
+				return true;
+				}
+			}else{
+				alert("调用异常");
+				return false;
+			}
+		}else{
+			return false;
+		}
+		
+	}
+	
+	/*~[Describe=房产信息1与房产信息2房产号一致;InputParam=无;OutPutParam=无;]~*/
+	function checkSameHouseCertificate(){
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		if(sBusinessType!="1010200" || sBusinessType!="1010210") return true;
+		var sOwnedProportion = getItemValue(0,getRow(),"HouseCertificate");
+		var sOwnedProportion2 = getItemValue(0,getRow(),"HouseCertificate2");
+		if(sOwnedProportion=="") return true;
+		if(sOwnedProportion==sOwnedProportion2){
+			alert("房产信息1与房产信息2的房产号一致");
+			return false;
+		}else{
+			return true;
+		}
+	}
+	
+	/*~[Describe=估算月收入;InputParam=无;OutPutParam=无;]~*/
+	function setReckonMonthlyIncome(){
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		if(sBusinessType!="1010200" || sBusinessType!="1010210") return;
+		/* var sOwnedProportion = getItemValue(0,getRow(),"OwnedProportion");
+		var sHouseAcreage = getItemValue(0,getRow(),"HouseAcreage");
+		var sAveragePrice = getItemValue(0,getRow(),"AveragePrice");
+		var sOwnedProportion2 = getItemValue(0,getRow(),"OwnedProportion2");
+		var sHouseAcreage2 = getItemValue(0,getRow(),"HouseAcreage2");
+		var sAveragePrice2 = getItemValue(0,getRow(),"AveragePrice2");
+		
+		if(typeof(sOwnedProportion2) == "undefined" || sOwnedProportion2.length == 0 ){
+			sOwnedProportion2 = 0;
+		}
+		if(typeof(sHouseAcreage2) == "undefined" || sHouseAcreage2.length == 0 ){
+			sHouseAcreage2 = 0;
+		}
+		if(typeof(sAveragePrice2) == "undefined" || sAveragePrice2.length == 0 ){
+			sAveragePrice2 = 0;
+		}
+		var reckonMonthlyIncome = sOwnedProportion*sHouseAcreage*sAveragePrice*0.04*0.01+sOwnedProportion2*sHouseAcreage2*sAveragePrice2*0.04*0.01;
+		if(parseInt(reckonMonthlyIncome)!=reckonMonthlyIncome){
+			reckonMonthlyIncome = reckonMonthlyIncome.toFixed(2);
+		}
+		setItemValue(0,getRow(),"ReckonMonthlyIncome",reckonMonthlyIncome); */
+		var sObjectNo = '<%=sSerialNo%>';
+		var reckonMonthlyIncome = RunMethod("CBBusinessManage","ReckonMonthlyIncome",","+sObjectNo+",,,,");
+		RunMethod("CBBusinessManage","SetReckonMonthlyIncome2",sObjectNo+","+reckonMonthlyIncome);
+		return true;
+	}
+	
+	//校验所有合作方配偶信息（天眼一期）   lx
+	function checkSpouseInfo(sLineID){
+		if(sLineID!=null){
+			var Marriage = getItemValue(0,getRow(),"Marriage");
+			if("20" == Marriage || "22" == Marriage){
+				var sSpouseName = getItemValue(0,getRow(),"SpouseName");//配偶姓名
+				var spouseIdType = getItemValue(0,getRow(),"spouse_id_type");//配偶证件类型
+				var sSpouseID = getItemValue(0,getRow(),"SpouseId");//配偶证件号码
+				var sSpousePhone = getItemValue(0,getRow(),"SpousePhone");//配偶手机号码
+				if(null == sSpouseName || "" == sSpouseName || typeof(sSpouseName)=="undefined"){
+					alert("配偶姓名不能为空！");
+					return false;
+				}
+				
+				if(null == spouseIdType || "" == spouseIdType || typeof(spouseIdType)=="undefined"){
+					alert("配偶证件类型不能为空！");
+					return false;
+				}
+				
+				if(null == sSpouseID || "" == sSpouseID || typeof(sSpouseID)=="undefined"){
+					alert("配偶证件号码不能为空！");
+					return false;
+				}
+				
+				if(spouseIdType!=null && ("Ind01" == spouseIdType || "Ind08" == spouseIdType) && sSpouseID!=null){
+					      if(!CheckLisince(sSpouseID)){
+								  alert("配偶证件号码有误，请检查！");
+							     return false;						 
+							}
+				}
+				if(null == sSpousePhone || "" == sSpousePhone || typeof(sSpousePhone)=="undefined"){
+						alert("配偶手机号码不能为空！");
+						return false;
+					}
+				 if( !CheckPhoneCode(sSpousePhone) ){
+			      alert("配偶手机号码输入有误，请重新输入!");
+			      return false;
+		         }
+			 	if("RL20161214000001"==sLineID){//如果是稠州的需要新增  子女是否本地上学必输。
+					var sChildrenWhetherLocalSchool = getItemValue(0,getRow(),"ChildrenWhetherLocalSchool");//
+					if(null == sChildrenWhetherLocalSchool || "" == sChildrenWhetherLocalSchool || typeof(sChildrenWhetherLocalSchool)=="undefined"){
+						alert("子女是否本地上学不能为空！");
+						return false;
+					}
+				}
+			}
+			
+		}
+		
+		return true;
+	}
+	
+	function checkChannel2(){
+		msg = getItemValue(0,getRow(),"ChannelName");//渠道名称
+		if(msg.indexOf("其他") >=0||msg =='其他' ||  msg =='其它'||msg.indexOf("其它") >=0){
+			 setItemRequired(0,getRow(),"ChannelDeputy_Telephone",true); 
+			 setItemRequired(0,getRow(),"ChannelDeputy_Certid",true); 
+			 setItemRequired(0,getRow(),"ChannelDeputy_Name",true); 
+			 //setItemRequired(0,getRow(),"Channel_Company",false); 
+		}
+	}
+	/*~[Describe=选择渠道单位  面签一体化需求  问题修复  lx;InputParam=无;OutPutParam=无;]~*/
+	function selectChannel() {
+		//非挖掘中心  渠道名称仅可选择所在客户经理所在分公司的渠道 			zengzhicheng  20171026 begin
+<%-- 		var sOrgID = "<%=CurUser.OrgID %>"; --%>
+		var sOrgID="";
+		var sSeriaNo = "<%=sSerialNo %>";
+		var orgID = RunMethod("CBBusinessManage","GetSaleManagerOrgId",sSeriaNo);
+		var sOrgIDs = orgID.split("@");
+		var isgrap = sOrgIDs[1];
+		if("1"==isgrap){
+			sOrgID="<%=CurUser.OrgID %>";
+		}else{
+			sOrgID=sOrgIDs[0];
+		}
+		//zengzhicheng  end;
+		var sReturn = setObjectValue("SelectChannelName","OrgID,"+sOrgID,"@Channel@0@ChannelName@1",0,0,"");
+		var strs= new Array(); //定义一数组 
+		strs=sReturn.split("@"); //字符分割 
+		if(strs[1].indexOf("其他") < 0&strs[1]!='其他'&strs[1]!='其它'&strs[1].indexOf("其它") < 0){
+			 setItemRequired(0,getRow(),"ChannelDeputy_Telephone",false); 
+			 setItemRequired(0,getRow(),"ChannelDeputy_Certid",false); 
+			 setItemRequired(0,getRow(),"ChannelDeputy_Name",false); 
+			setItemValue(0,getRow(),"ChannelDeputy_Telephone","");
+	     	setItemValue(0,getRow(),"ChannelDeputy_Certid","");
+	     	setItemValue(0,getRow(),"ChannelDeputy_Name","");
+	     	setItemValue(0,getRow(),"Channel_Company","");
+		}
+	}
+	function selectChannel2() {
+		
+		var ChannelName = getItemValue(0,getRow(),"ChannelName");//渠道名称
+		if(ChannelName.indexOf("其他") >= 0||ChannelName=='其他'||ChannelName=='其它'|| ChannelName.indexOf("其它") >= 0){
+			setNoCheckRequired(0);
+			Beforesave();
+			as_save("myiframe0","selectChannel3();");
+			
+		}else{
+			alert("已有渠道,禁止此操作");
+		}
+		
+	}
+	function selectChannel3() {
+		beforeLoading();
+		popComp("NewChannels","/CreditManage/CreditContract/NewChannelsList.jsp","SerialNo=<%=sSerialNo%>&flag=<%=sFlag%>","dialogWidth=1050px;dialogHeight=770px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		beforeLoading();
+		reloadSelf();
+	}
+   /*~[Describe=20161231_客户曾用名信息映射到关联人征信授权表(RelatedPerson_info);InputParam=无;OutPutParam=无;]~*/
+	function  getRelatedPersonInfo_NameUsedBefore(){
+       var  sCustomerName=getItemValue(0,getRow(),"NameUsedBefore");//曾用名   
+       var  sRelatedPersonType="02";//关联人类型   
+       var  sObjectNo=getItemValue(0,getRow(),"SerialNo");// 申请编号	
+        
+       if(sCustomerName!=""){  
+	     	var  sCertType=getItemValue(0,getRow(),"CertType");//证件类型
+		    var  sCertID=getItemValue(0,getRow(),"CertID");//证件号码
+		    var  sMobiletelPhone=getItemValue(0,getRow(),"MobileTelephone");//手机号码
+		    var  sUserID ="<%=CurUser.UserID%>";//当前用户ID
+		    var  sObjectNo1="";//映射数据编号（例如：担保人）用于区分重复映射
+	       RunMethod("CBBusinessManage","AssociateCreditAuthorizationMapping",sCustomerName+","+sCertType+","+sCertID+","+sMobiletelPhone+","+sObjectNo+","+sRelatedPersonType+","+sUserID+","+sObjectNo1);
+		//删除映射过的曾用名信息   
+       }else{
+		  RunMethod("CBBusinessManage","DelRelatedPersonInfo",sObjectNo+","+sRelatedPersonType);   
+	   }
+
+	}
+	
+    /*~[Describe=20161231_配偶信息映射到关联人征信授权表(RelatedPerson_info);InputParam=无;OutPutParam=无;]~*/
+	function  getRelatedPersonInfo_Spouse(){
+    	var Marriage = getItemValue(0,getRow(),"Marriage");
+    	var  sObjectNo=getItemValue(0,getRow(),"SerialNo");// 申请编号
+    	var  sRelatedPersonType="01";//关联人类型
+    	    
+		if("20" == Marriage || "22" == Marriage)
+    	{
+	       var  sCustomerName=getItemValue(0,getRow(),"SpouseName");//配偶姓名
+	       var  sCertID=getItemValue(0,getRow(),"SpouseId");//配偶证件号码
+	       var  sCertType=getItemValue(0,getRow(),"spouse_id_type");//配偶证件类型  
+		   var  sMobiletelPhone=getItemValue(0,getRow(),"SpousePhone");//配偶手机号码
+			    	      
+	       if(sCustomerName!=""||sCertID!=""||sCertType!=""||sMobiletelPhone!=""){ 
+			    var  sUserID ="<%=CurUser.UserID%>";//当前用户ID
+			    var  sObjectNo1="";//映射数据编号（例如：担保人）用于区分重复映射
+		       RunMethod("CBBusinessManage","AssociateCreditAuthorizationMapping",sCustomerName+","+sCertType+","+sCertID+","+sMobiletelPhone+","+sObjectNo+","+sRelatedPersonType+","+sUserID+","+sObjectNo1);
+		   }
+		//删除映射过的配偶信息   
+       }else{
+    	   RunMethod("CBBusinessManage","DelRelatedPersonInfo",sObjectNo+","+sRelatedPersonType);
+       }
+	}
+
+	function selectModel(){
+		var BusinessType = getItemValue(0,getRow(),"BusinessType");
+		if(BusinessType != "1010110"){
+			setItemValue(0,getRow(),"creditinstallmentflag","");
+		}
+		var creditinstallmentflag = getItemValue(0,getRow(),"creditinstallmentflag");
+		if(BusinessType != null && BusinessType != ""){
+			OpenComp("LoanBusinessInfo","/CreditManage/CreditContract/LoanBusinessInfo.jsp","BusinessType="+BusinessType+"&creditinstallmentflag="+creditinstallmentflag+"&Serialno=<%=sSerialNo%>"+"&CertID=<%=sCertID%>"+"&RightType=<%=sRightType%>","DetailFrame","");
+			setDialogTitle("产品收入计算器");
+		}
+	}
+	
+	/*~[Describe=是否注册校验;InputParam=无;OutPutParam=无;]~*/
+	function selectEnroll() {
+		var sEnroll = getItemValue(0,getRow(),"Enroll");
+		var sTempSaveFlag = getItemValue(0,getRow(),"TempSaveFlag");//暂存标识
+		
+		
+		if(sEnroll=='1'){
+			setItemDisabled(0,getRow(),"TakenCase",false);
+			    
+			if(sTempSaveFlag !='1'){
+			    setItemRequired(0,getRow(),"TakenCase",true);
+			}else{
+			   setItemRequired(0,getRow(),"TakenCase",false);
+			}
+			    
+		}else{
+			setItemDisabled(0,getRow(),"TakenCase",true);
+			setItemRequired(0,getRow(),"TakenCase",false);
+			setItemValue(0,getRow(),"TakenCase","");
+		}
+       
+	}
+	
+	
+	/*~[Describe=客户类型判断;InputParam=无;OutPutParam=无;]~*/
+	function selectEmployeeType() {
+		var sEmployeeType = getItemValue(0,getRow(),"EmployeeType");
+		var sTempSaveFlag = getItemValue(0,getRow(),"TempSaveFlag");//暂存标识
+		
+		if(sEmployeeType=='060'){//自雇人士客户
+		    setItemDisabled(0,getRow(),"Enroll",false);
+		    
+		    if(sTempSaveFlag !='1'){
+		       setItemRequired(0,getRow(),"Enroll",true);
+		    }else{
+		      setItemRequired(0,getRow(),"Enroll",false);
+		    }
+		    
+		}else{
+		    setItemRequired(0,getRow(),"Enroll",false);
+		    setItemDisabled(0,getRow(),"Enroll",true);
+		    
+		    setItemRequired(0,getRow(),"TakenCase",false);
+		    setItemDisabled(0,getRow(),"TakenCase",true);
+		    
+		    setItemValue(0,getRow(),"Enroll","");
+		    setItemValue(0,getRow(),"TakenCase","");
+		
+	   }
+		
+		//20171124 ex-yijiangpeng 新天眼增加字段 POSTTITLE
+		ChoosePostTitleByEmployeeType();
+
+	}
+	
+	/*~[Describe=完善面签信息婚姻状况选择事件(天眼一期);InputParam=无;OutPutParam=无;]~*/
+	function  MarriageChanged(sLineID){
+	   var sMarriage=getItemValue(0,getRow(),"Marriage"); //婚姻状况
+	   var sTempSaveFlag =	getItemValue(0,getRow(),"TempSaveFlag");//暂存标志（1：是；2：否）
+	  //20171124 ex-yijiangpeng 解决框架bug；若字段名ISSpouseAware没有在模板配置，则setItemReadOnly、setItemDisabled这行（含）下面的js代码都不会执行。临时解决办法：用getItemValue结果判断若typeof(sISSpouseAware)不等于undifine，则不setItemReadOnly、setItemReadOnly处理
+	  var sISSpouseAware= getItemValue(0,getRow(),"ISSpouseAware");
+	  //alert("test===typeof(sISSpouseAware)="+typeof(sISSpouseAware));
+	   
+	   if("20" == sMarriage||"22"== sMarriage){//婚姻状况 不为 已婚 或再婚时      配偶姓名、配偶证件类型、配偶证件号码、配偶手机号码设置为 不必填 
+	      setItemDisabled(0,getRow(),"SpouseName",false);
+	      setItemDisabled(0,getRow(),"SpouseId",false);
+	      setItemDisabled(0,getRow(),"spouse_id_type",false);
+	      setItemDisabled(0,getRow(),"SpousePhone",false);
+	      //安信的
+		  if("undefined"!= typeof(sISSpouseAware)){
+	      	setItemDisabled(0,getRow(),"ISSpouseAware",false);
+	      }
+		  
+	      if(sTempSaveFlag !='1'){
+	    	  setItemRequired(0,getRow(),"SpouseName",true);  // 配偶姓名设置为不必填
+		      setItemRequired(0,getRow(),"SpouseId",true);  // 配偶证件号码设置为不必填
+		      setItemRequired(0,getRow(),"spouse_id_type",true);  // 配偶证件类型设置为不必填
+		      setItemRequired(0,getRow(),"SpousePhone",true);    // 配偶手机号设置为不必填        
+		      //安信的
+			  if("undefined"!= typeof(sISSpouseAware)){
+		      	setItemRequired(0,getRow(),"ISSpouseAware",true); // 配偶是否知悉此项贷款设置为不必填
+		      }
+	      }else{
+	    	  setItemRequired(0,getRow(),"SpouseName",false);  // 配偶姓名设置为不必填
+		      setItemRequired(0,getRow(),"SpouseId",false);  // 配偶证件号码设置为不必填
+		      setItemRequired(0,getRow(),"spouse_id_type",false);  // 配偶证件类型设置为不必填
+		      setItemRequired(0,getRow(),"SpousePhone",false);    // 配偶手机号设置为不必填        
+		      //安信的
+			  if("undefined"!= typeof(sISSpouseAware)){
+		      	setItemRequired(0,getRow(),"ISSpouseAware",false); // 配偶是否知悉此项贷款设置为不必填
+		      }
+	      }     
+	   }else {
+	      setItemRequired(0,getRow(),"SpouseName",false);  // 配偶姓名设置为不必填
+	      setItemRequired(0,getRow(),"SpouseId",false);  // 配偶证件号码设置为不必填
+	      setItemRequired(0,getRow(),"spouse_id_type",false);  // 配偶证件类型设置为不必填
+	      setItemRequired(0,getRow(),"SpousePhone",false);    // 配偶手机号设置为不必填   
+	     
+	      setItemDisabled(0,getRow(),"SpouseName",true);
+	      setItemDisabled(0,getRow(),"SpouseId",true);
+	      setItemDisabled(0,getRow(),"spouse_id_type",true);
+	      setItemDisabled(0,getRow(),"SpousePhone",true);  
+	       //清空
+	     setItemValue(0,getRow(),"SpouseName","");
+	     setItemValue(0,getRow(),"SpouseId","");
+	     setItemValue(0,getRow(),"spouse_id_type","");
+	     setItemValue(0,getRow(),"SpousePhone","");
+	     
+	      //安信的
+		  if("undefined"!= typeof(sISSpouseAware)){
+	     	setItemRequired(0,getRow(),"ISSpouseAware",false);   // 配偶是否知悉此项贷款设置为不必填
+	     	setItemDisabled(0,getRow(),"ISSpouseAware",true);
+	     }
+	     setItemValue(0,getRow(),"ISSpouseAware","");
+	   }
+	}
+	
+	function checkEducation(){
+		//业务品种
+		var sBusinessType = getItemValue(0,getRow(),"BusinessType");
+		var sSchoolno = getItemValue(0,getRow(),"SchoolNo");//毕业学校
+		var sEduDegree = getItemValue(0,getRow(),"EduDegree");//学位
+		var sGraduateTime = getItemValue(0,getRow(),"GraduateTime");//毕业时间
+		var sSerialno = "<%=sSerialNo%>";
+		if(sBusinessType=="1010140"){
+			var sReturn =  RunMethod("CBBusinessManage","checkEducation",sSerialno+","+sSchoolno+","+sGraduateTime+","+sEduDegree);
+			return  sReturn;
+		}else{
+			return "";
+		}
+	}
+	
+	function HouseTypeChanged(){	
+	  	var houseFlag = getItemValue(0,getRow(),"HouseFlag");
+		//var sTempSaveFlag1 =	getItemValue(0,getRow(),"TempSaveFlag");//暂存标志（1：是；2：否）
+			
+				if(houseFlag=="1"){			
+					setItemDisabled(0,getRow(),"DetailedHouseADD",false);
+					setItemDisabled(0,getRow(),"HouseADDName",false);
+					
+					if(sTempSaveFlag1 !='1'){
+						setItemRequired(0,getRow(),"DetailedHouseADD",true);	
+						setItemRequired(0,getRow(),"HouseADDName",true); 
+					}else{
+					    
+					    setItemRequired(0,getRow(),"DetailedHouseADD",false);	
+						setItemRequired(0,getRow(),"HouseADDName",false); 
+					}
+					//setItemReadOnly(0,getRow(),"HouseADDName",true);
+					//setItemReadOnly(0,getRow(),"DetailedHouseADD",true);
+				}else{
+				    	
+				    setItemRequired(0,getRow(),"HouseADDName",false); 
+					setItemRequired(0,getRow(),"DetailedHouseADD",false); 	
+					
+							
+				    setItemDisabled(0,getRow(),"HouseADDName",true);
+					setItemDisabled(0,getRow(),"DetailedHouseADD",true);
+					
+					
+
+					setItemValue(0,getRow(),"HouseADDName","");
+					setItemValue(0,getRow(),"DetailedHouseADD","");
+					setItemValue(0,getRow(),"HouseProvinces","");
+					
+						
+			}
+	}
+	
+	function FaceCheckSubmit()
+	{
+		//获得申请类型、申请流水号
+		var sSerialNo = getItemValue(0,getRow(),"SerialNo");
+		var sBusinessChannel = RunMethod("PublicMethod","GetColValue","BusinessChannel" + "," + "aheadwill_info" + "," + "serialno='"+sSerialNo+"'");
+		var sftSerialNo = RunMethod("PublicMethod","GetColValue","SerialNo" + "," + "Flow_Task" + "," + "Objecttype='CBCreditApply' and endtime is null and Objectno='"+sSerialNo+"'");
+		var sUserID = "<%= CurUser.UserID%>";
+		var sTempSaveFlag = getItemValue(0,getRow(),"TempSaveFlag");
+		var sLineID = getItemValue(0,getRow(),"LineID");//合作方ID
+		//20170308效验暂存不能提交任务(张胜)
+       if(sTempSaveFlag==""||sTempSaveFlag=="1"){
+           alert("备签信息没填写完整,系统处于暂存状态，请填写完后再提交！"); 
+          return;
+       }
+       sReturn = RunMethod("CBBusinessManage","getIntentionBusinesssumAndHouseholdFrom",sSerialNo);
+		if(sReturn == 0 ){
+			alert('需录入户籍所属地区、意向申请金额，请补充！');
+			return; 
+		}
+	/* 	if (typeof(sSerialNo)=="undefined" || sSerialNo.length==0){
+			alert(getHtmlMessage('1'));//请选择一条信息！
+			return;
+		} */
+		
+		//2017/04/22  面签提交  校验 亲属与非亲属  联系人的个数
+	 	var RelationNumber01=RunMethod("CBBusinessManage","getRelationNumber01",sSerialNo+",01");//取出有几个亲属联系人
+	 	var RelationNumber02=RunMethod("CBBusinessManage","getRelationNumber02",sSerialNo+",02");//取出有几个亲属联系人
+	 	
+	 	if(parseInt(RelationNumber01)<parseInt('2.0')){
+	 		alert("亲属联系人信息没有达到2人");
+	 		return false;
+	 	}
+	 	if(parseInt(RelationNumber02)<parseInt('3.0')){
+	 		alert("非亲属联系人信息没有达到3人");
+	 		return false;
+	 	}
+		
+	 	//安信同事校验
+	    if(sLineID=="RL20151210000001"){
+	 		var workmateCount=RunMethod("CBBusinessManage","GetWorkmate",sSerialNo);//同事个数
+	 		if(parseInt(workmateCount)<parseInt('1.0')){
+	 			alert("非亲属联系人没有同事信息");
+	 			return false;
+	 		}
+	 		var sIsaware=RunMethod("CBBusinessManage","CheckAXIsaware",sSerialNo);//取出有几个亲属联系人
+		 	if(sIsaware=="false"){
+		 		alert("联系人是否悉知不能为空");
+		 		return false;
+		 	}
+	 	}
+		
+		//校验图像
+		var ssFlag = "<%=ssFlag%>";
+        if(ssFlag=="Y"){
+			sTypeNo = "4210";
+			sObjectType = "CBCreditApply";
+			sAlert = "影像录入未扫描！";
+			sReturn = RunMethod("CBBusinessManage","GetImageOtherInfo",sSerialNo+","+sObjectType+","+sTypeNo);
+			if(sReturn == 0){
+				alert(sAlert);
+				return; 
+			}
+		}
+      //面核提交--ex-liutieshan
+		var facetoverifyflag = "<%=Facetoverifyflag%>";
+		//先审后签，需要提交流程
+		if("DISP"==sBusinessChannel){
+			RunMethod("WorkFlowEngine","UpdateUserInfo",sUserID+","+sftSerialNo);
+			popComp("FinishAheadWillSignInfo","/CreditManage/CreditContract/FinishAheadWillSignInfo.jsp","SerialNo="+sSerialNo+"&ftSerialNo="+sftSerialNo+"&Facetoverifyflag="+facetoverifyflag,"dialogWidth=450px;dialogHeight=500px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+		else{
+			popComp("FinishAheadWillSignInfo","/CreditManage/CreditContract/FinishAheadWillSignInfo.jsp","SerialNo="+sSerialNo+"&Facetoverifyflag="+facetoverifyflag,"dialogWidth=450px;dialogHeight=500px;resizable=no;scrollbars=no;status:yes;maximize:no;help:no;");
+		}
+	    reloadSelf();
+	}
+	
+	//提交进行判断是否否决
+	function checkSubmit(){
+		var sSerialNo = "<%=sSerialNo%>";
+		//获取面核结果
+		var resutl=RunMethod("CBBusinessManage","GetFaceCheckConclusion",sSerialNo);
+		//判断面核是否被否决
+		if("F"==resutl){
+			delRecord();
+		}else{
+			FaceCheckSubmit();
+		}
+	}
+	//面签否决
+	 function delRecord()
+	{  
+			//alert("面签否决");
+			var sSerialNo = "<%=sSerialNo%>";
+			var obj = new Object();
+			var sCertID = getItemValue(0,getRow(),"CertID");
+			var userId = "<%=CurUser.UserID%>";
+			var orgId = "<%=CurUser.OrgID%>";
+			var centerId = RunMethod("CBBusinessManage","GetSignAddress",sSerialNo); //面签中心
+			var sCatchNumberFlag = RunMethod("CBBusinessManage","GetCatchNumberFlag",centerId); //取号开关
+			
+			var sRemark="";
+		/* 	var sRemark= getItemValue(0,getRow(),"FinishRemark");/* getItemValue(0,getRow(),"FinishRemark").replace(/,/g,'，');
+			 //特殊字符处理（逗号全部替换为中文）
+	         sRemark=sRemark.replace(/\,/g,"，");
+	        //与框架冲突  （特殊字符处理（括号）转换为中文）
+		     sRemark=sRemark.replace(/\(/g,"（");
+	         sRemark=sRemark.replace(/\)/g,"）");   
+	       
+			var sRemarkTemp=sRemark.replace(/\ /g,"");  */
+			var sFinishTime="<%=StringFunction.getTodayNow()%>";
+			var sUserID="<%=CurUser.UserID%>";
+			var sExclusiveTypeNo= getItemValue(0,getRow(),"ExclusiveTypeNo");
+			var sPrimaryProduct= getItemValue(0,getRow(),"PrimaryProduct");
+			var sReasonCode= "";
+			var sReasonCodeRemark="";
+			if( ! vI_all("myiframe0")) return;
+			
+			/* if(typeof(sRemark)=="undefined"||sRemarkTemp =="Null"||sRemarkTemp==null||sRemarkTemp==""){
+				alert("请填写面签意见！");
+				return;
+			} */
+			
+			/* if(typeof(sReasonCode)=="undefined"||sReasonCode =="Null"||sReasonCode==null||sReasonCode==""){
+				alert("请填写面签否决意见类别！");
+				return;
+			}
+			if(sReasonCode.indexOf("@11201@")>-1 && (sReasonCodeRemark==null||sReasonCodeRemark=="")){
+    	       alert("您选择的面签否决意见类别为其他，请补充面签否决意见备注！");
+    	       return;
+    	     } */
+			
+			var ftSerialNo = RunMethod("PublicMethod","GetColValue","SerialNo" + "," + "Flow_Task" + "," + "Objecttype='CBCreditApply' and endtime is null and Objectno='"+sSerialNo+"'");
+			if(confirm("确定要否决该笔面签吗？")){
+				if(sCatchNumberFlag=="1"){
+					var vFlag = "02";
+					RunMethod("CBBusinessManage","ReleaseQueueNo",centerId+","+sCertID+","+userId+","+vFlag);
+				}
+				RunMethod("CBBusinessManage","UpdateAheadWill",sSerialNo+","+sExclusiveTypeNo+","+sPrimaryProduct+","+sReasonCodeRemark+","+sReasonCode);
+				//更新否决原因、更新面签状态
+				RunMethod("CBBusinessManage","UpdateAheadWillRemark",sSerialNo+",14,"+sRemark+","+sFinishTime+","+sUserID);
+				/*--------根据面签否决原因判断是否关注黑名单管理     oubangfei begin--------*/
+				var sReason = RunMethod("PublicMethod","BlacklistManage",sSerialNo+",checkReasonMHMQ,"+"");//查询面核面签否决原因
+				if("addBlackClient"==sReason){
+					RunMethod("PublicMethod","BlacklistManage",sSerialNo+",addBlackClientMHMQ,"+"");//借款人纳入黑名单
+				}
+				/*--------根据面签否决原因判断是否关注黑名单管理     oubangfei begin--------*/
+				
+				//面签否决判断是否需要纳入黑名单----tangbo
+				var PReason = RunMethod("PublicMethod","ChannelManage",sSerialNo+",checkReasonMHMQ");//查询面核面签否决原因
+				if(PReason=="Success"){
+					RunMethod("PublicMethod","ChannelManage",sSerialNo+",addBlackMHMQ");//纳入黑名单
+				}
+				alert("该笔业务已被否决！");
+				window.returnValue = "Y";
+				top.close();		
+			} 
+		
+	} 
+	</script>
+<%/*~END~*/%>
+
+
+<%/*~BEGIN~可编辑区~[Editable=false;CodeAreaID=Info08;Describe=页面装载时，进行初始化;]~*/%>
+<script language=javascript>
+	AsOne.AsInit();
+	init();
+	var bFreeFormMultiCol = true;
+	my_load(2,0,'myiframe0');
+	initRow(); //页面装载时，对DW当前记录进行初始化
+//	selectModel();	
+	</script>	
+<%/*~END~*/%>
+
+
+<%@ include file="/IncludeEnd.jsp"%>

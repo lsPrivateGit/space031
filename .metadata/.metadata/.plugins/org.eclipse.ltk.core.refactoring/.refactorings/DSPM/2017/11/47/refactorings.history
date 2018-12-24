@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy element &apos;PrintAheadWillApplyHKDYSheet.jsp&apos; to &apos;PrintAheadWillApplyHKDYSheet.jsp&apos;&#x0D;&#x0A;- Original project: &apos;DSPM&apos;&#x0D;&#x0A;- Destination element: &apos;PrintAheadWillApplyHKDYSheet.jsp&apos;&#x0D;&#x0A;- Original element: &apos;PrintAheadWillApplyHKDYSheet.jsp&apos;" description="Copy file" element1="WebRoot/CreditManage/CreditContract/PrintAheadWillApplyHKDYSheet.jsp" files="1" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1511506024867" target="/DSPM/WebRoot/CreditManage/CreditContract/PrintAheadWillApplyHKDYSheet.jsp" units="0" version="1.0"/>
+</session>

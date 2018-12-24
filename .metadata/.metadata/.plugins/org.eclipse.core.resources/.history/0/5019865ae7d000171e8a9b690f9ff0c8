@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Context crossContext="true" reloadable="false" debug="1">
+
+	<!-- <Resource name="jdbc/oradb" auth="Container" type="javax.sql.DataSource"
+		maxActive="100" maxIdle="30" maxWait="10000" username="DSPMOPR" password="Dsfzzxd10"
+		driverClassName="oracle.jdbc.driver.OracleDriver" url="jdbc:oracle:thin:@10.1.105.157:1525:d0dspm" />
+	<Resource name="jdbc/report" auth="Container" type="javax.sql.DataSource"
+		maxActive="100" maxIdle="30" maxWait="10000" username="DSPMOPR" password="Dsfzzxd10"
+		driverClassName="oracle.jdbc.driver.OracleDriver" url="jdbc:oracle:thin:@10.1.105.157:1525:d0dspm" /> -->
+		
+		
+ <Resource name="jdbc/oradb" auth="Container" type="javax.sql.DataSource"
+  maxActive="100" maxIdle="30" maxWait="10000" username="dspmopr" password="Dspmoprt3"
+  driverClassName="oracle.jdbc.driver.OracleDriver" url="jdbc:oracle:thin:@10.30.84.147:1529:t3dspm" />
+ <Resource name="jdbc/report" auth="Container" type="javax.sql.DataSource"
+  maxActive="100" maxIdle="30" maxWait="10000" username="dspmopr" password="Dspmoprt3"
+  driverClassName="oracle.jdbc.driver.OracleDriver" url="jdbc:oracle:thin:@10.30.84.147:1529:t3dspm" />
+
+</Context>

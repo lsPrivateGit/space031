@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="test">
+		
+		<!-- 根据id查询用户信息 -->
+		<select id="findUserById" parameterType="int" resultType="user">
+			select * from t_user where id =#{id}
+		</select>
+		
+		
+		<!-- 根据用户姓名模糊查询-->
+		<select id="findUserByUsername" parameterType="string" resultType="User">
+			select * from t_user where username like '%${value}%'
+		</select>
+		
+		<!-- 添加用户 -->
+		<insert id="insertUser" parameterType="User">
+			insert into t_user (id,username,sex,birthday,address) values(#{id},#{username},#{sex},
+				#{birthday,jdbcType=TIMESTAMP},#{address});
+		</insert>
+		
+		<!-- 删除用户，根据id -->
+		<delete id="deleteUserById" parameterType="int">
+			delete from t_user where id =#{id}
+		</delete>
+		
+		<!--  根据id更改用户信息-->
+		<update id="updateUserById" parameterType="user">
+				update t_user set username=#{username},birthday=#{birthday},sex=#{sex},address=#{address} where id=#{id}
+		</update>
+		
+		
+</mapper>	

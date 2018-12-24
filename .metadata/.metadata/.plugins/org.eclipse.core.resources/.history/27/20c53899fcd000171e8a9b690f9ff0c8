@@ -1,0 +1,732 @@
+
+<%@page import="com.amarsoft.app.barcode.BarCode"%><%
+/* 
+ * 
+ * Content: 围场华商村镇银行 -个人信用贷款申请表	
+ * Input Param:
+ *   		贷款申请流水号：sObjectNo
+ * Output param:
+ * author： sunjiamin  2017.11.24
+ * History Log:  
+ *                  
+ */
+%>
+
+<%@ page contentType="text/html; charset=GBK"%>
+<%@ include file="/IncludeBegin.jsp"%>
+<html>
+<head>
+<title>个人信用贷款申请表</title>
+</head>
+
+<style>
+.black9pt {  font-size: 7pt; color: #000000; text-decoration: none}
+
+.STYLE1{
+}
+</style>
+
+<body>
+<div id="CoverTipDiv" style="position:absolute; left:110px; top:110px; width:99%; height:43px; z-index:2; display:none ;align =center"> 
+	<table width="70%" height="100%" align=left border="0" cellspacing="0" cellpadding="1" bgcolor="#333333">
+		<tr> 
+			<td>
+				<table width="99%" height="99%" border="0" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF">
+					<tr> 
+						<td width=1 ><img class=clockimg src=<%=sResourcesPath%>/LFLog.gif width="25" height="25"></td>
+						<td id="CoverTipTD" style="background-color: #FFFFFF;  "></td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</div>
+<!-- 查询打印的数据 -->
+<%
+	//获取参数信息,申请流水号,客户ID
+	String sSerialNo =  DataConvert.toString(DataConvert.toRealString(iPostChange,(String)CurComp.getParameter("SerialNo")));
+	ASResultSet rs = null;
+	String sSql = "";
+	
+	/*--------------------------------申请方案信息------------------------------------------*/
+	//客户姓名、性别、身份证号码、证件到期日、身份证发证机关所在地、户口所在地、教育程度
+	String sCustomerName="",sSex="",sCertID="",sCertificateduedate="",sNativeAdd="",sCustomerLocation="",sEduExperience="",sEduExperienceName = "";
+	//婚姻状况、有无子女、有无本地房产、居住状况 、 详细居住地址、   住宅邮编、  家庭固话
+	String sMarriage="",sMarriageName = "",sChildFlag="",sChildFlagName="",sLocalHouseFlag="",sFamilyStatus="",sFamilyAdd="",sFamilyZIP="",sFamilyTel="";
+    //手机号、手机号码是否本人身份证号码登记、客户类型、个人类型
+    String sMobileTelephone="",sIsCertTelephone="",sEmployeeType="",sEmployeeTypeName="",sPersonalType="",sPersonalTypeName="";
+    //单位名称、所在部门 、单位性质、现单位工作年限、企业成立年限、 职务名称
+    String sWorkCorp="",sDepartment="",sWorkNature ="",sWorkBeginDate ="",sIndustryAge ="",sHeadShip=""; 
+	//职务类型、单位固话、单位详细地址、单位邮编、人事部联系人、人事部联系电话、人事部联系手机号
+	String sPosionLevel="",sWorkTel="",sWorkAdd="", sWorkZip="",sHRContacts="",sHRCorp_Area="",sHRZone="",sTelephone="";
+    //月收入、有无汽车  、电子邮箱、QQ、微信号、首选电话、首选邮寄
+    String sMonthIncome="",sOwningcar="",sEmailAdd="", sQQAccountNo="",sWeChatAccountNo="",sFirstTel="",sFirstEmail="";
+    //亲属联系人姓名    亲属联系人关系  亲属联系人手机号、亲属联系人固定电话、亲属联系人固定电话 、其他联系人姓名
+    String sFamilyName="",sFamilyRelationShip ="",sFamilyRelationPhone="",sFamilyTelePhone="",sNoFamilyName="";
+	//其他联系人关系     其他联系人手机    其他联系人座机  申请金额、利率调整方式、业务类型
+    String sNoFamilyRelationShip="",sNoFamilyMobileTelephone="",sNoFamilyTelePhone ="",sOccurType="",sOccurTypeName="";
+    //还款方式     贷款期限    还款周期  币种、贷款用途、其他用途
+    String sMainReturnType="",sLoanTerm="",sReturnPeriod ="",sCurrency="",sPurpose="",sOtherPurpose="";
+    //支付方式     还款账户户名    还款卡号  还款账户开户行、还款账户开户行行号、收款账户户名
+    String sPaymentMode="",sAcountRepayName="",sPayMentCardID ="",sAccountRepayBank="",sAccountRepayBankId="",sGatheringName="";
+    //收款卡号/账号     收款行名称    收款账户开户行、收款账户开户行行号、贷款品种 
+    String sGatheringCardID="",sAccountInBank="",sAccountInsubBank ="",sAccountInsubBankId="",sAdjustRateType="",sBusinessType="",sBusinessTypeName="";
+	//收款卡号/账号     附件材料(多选)  其它附件材料、借款人行业名称、借款人行业名称代码、借款人职业名称、借款人职业名称代码  
+    String sPurposeType="",sOtherDatum="",sOtherAccessoryMaterial ="",sUnitKindName="",sUnitKind="",sOccupationName="",sOccupation="",sOperateOrgID="",sOperateOrgName="",sBarCodeNo="";
+    //收款卡号/账号     附件材料(多选)  其它附件材料、借款人行业名称、借款人行业名称代码、借款人职业名称、借款人职业名称代码  
+    String sOperateUserID="",sOperateUserName="",sOperateTelephone = "",sRemark = "", sFamilyProvincesName="",sCorpArea ="", sHouseArea = "",sWorkProvincesName = "",sSpouseName = "",sSpouseId = "",sKinsfolk_Corp_Area = "",sTelArea = "";
+    //tangbo  抵押人1姓名、抵押人1身份证号码、抵押人2姓名、抵押人2身份证号码、其他抵押人信息
+    String sDYName="",sDYCertId="",sDYName2="",sDYCertId2="",qita="";
+   	//坐落、房产建筑面积、房产用途、房产用途其它、房龄、单价（人民币）、总价（人民币）
+    String sDYHouseSit="",sDYHouseAcreage="",sPlannedUses="",sPlannedUsesOther="",sDYHouseAge="",sDYPrice="",sDYCountPrice="";
+    double dBusinessSum=0.0;
+	sSql = " select CustomerName,getItemName('Sex',Sex) as Sex,CertID,Certificateduedate,NativeAdd,getItemName('CustomerLocation',CustomerLocation) as CustomerLocation,getItemName('EduExperience',EduExperience) as EduExperience,getItemAllAreaCodeName('AreaCode',FamilyProvinces) as FamilyProvincesName,HouseArea,getItemAllAreaCodeName('AreaCode',WorkProvinces) as WorkProvincesName,CorpArea,"+
+			" getItemName('Marriage',Marriage) as Marriage,getItemName('HaveNot',ChildFlag) as ChildFlag,getItemName('HaveNot',LocalHouseFlag) as LocalHouseFlag,getItemName('FamilyStatus',FamilyStatus) as FamilyStatus,FamilyAdd,FamilyZIP,FamilyTel,MobileTelephone,getItemName('YesNo',IsCertTelephone) as IsCertTelephone,EmployeeType,getItemName('NewCustomerType',EmployeeType) as EmployeeTypeName,SchoolNo,getSchoolName(SchoolNo) as SchoolName,getItemName('EduDegree',EduDegree) as EduDegree,GraduateTime,"+
+		    " PersonalType,getItemName('PersonalType',PersonalType) as PersonalTypeName,WorkCorp,Department,getItemName('WorkNature',WorkNature) as WorkNature,WorkBeginDate,IndustryAge,HeadShip,getItemName('PosionLevel',PosionLevel) as PosionLevel,WorkTel,WorkAdd,WorkZip,HRContacts,HRCorp_Area,HRZone,Telephone,SpouseName,SpouseId,"+
+		    " MonthIncome,getItemName('YesNo',Owningcar) as Owningcar,EmailAdd,QQAccountNo,WeChatAccountNo,getItemName('FirstTel',FirstTel) as FirstTel,getItemName('FirstEmail',FirstEmail) as FirstEmail,"+
+		    " BusinessSum,getItemName('AdjustRateType',AdjustRateType) as AdjustRateType,OccurType,getItemName('CBOccurType',OccurType) as OccurTypeName,getItemName('MainReturnMethod',MainReturnType) as MainReturnType,getItemName('TermMonth',LoanTerm) as LoanTerm,getItemName('PayCyc',ReturnPeriod) as ReturnPeriod,getItemName('Purpose',Purpose) as Purpose,OtherPurpose,getItemName('Currency',Currency) as Currency,"+
+	        " getItemName('PaymentMode',PaymentMode) as PaymentMode,AcountRepayName,PayMentCardID,AccountRepayBank,AccountRepayBankId,GatheringName,GatheringCardID,AccountInBank,AccountInsubBank,"+
+		    " AccountInsubBankId,BusinessType,getBusinessName(BusinessType) as BusinessTypeName,getItemName('PurposeType',PurposeType) as PurposeType,"+
+	        " UnitKind,getItemName('UnitKind',UnitKind) as UnitKindName,Occupation,getItemName('Occupation',Occupation) as OccupationName,BarCodeNo,"+
+	        " OperateOrgID,getOrgName(OperateOrgID) as OperateOrgName,OperateUserID,getSellerName(OperateUserID) as OperateUserName,OtherAccessoryMaterial,AccessoryMaterial,Remark "+
+			" from AheadWill_Info "+
+			" where SerialNo='"+sSerialNo+"'";
+	rs = Sqlca.getASResultSet(sSql);
+	if( rs.next() ){
+		sCustomerName = DataConvert.toString(rs.getString("CustomerName"));//客户姓名
+		sSex = DataConvert.toString(rs.getString("Sex"));//性别
+		sCertID = DataConvert.toString(rs.getString("CertID"));//身份证号码
+		sCertificateduedate = DataConvert.toString(rs.getString("Certificateduedate"));//证件到期日
+		sNativeAdd = DataConvert.toString(rs.getString("NativeAdd"));//身份证发证机关所在地
+		sCustomerLocation = DataConvert.toString(rs.getString("CustomerLocation"));//户口所在地
+		sEduExperience = DataConvert.toString(rs.getString("EduExperience"));//教育程度
+		sMarriage = DataConvert.toString(rs.getString("Marriage"));//婚姻状况
+		sChildFlag = DataConvert.toString(rs.getString("ChildFlag"));//有无子女
+		sLocalHouseFlag = DataConvert.toString(rs.getString("LocalHouseFlag"));//有无本地房产
+		sFamilyStatus = DataConvert.toString(rs.getString("FamilyStatus"));//居住状况
+		sFamilyAdd = DataConvert.toString(rs.getString("FamilyAdd"));//详细居住地址
+		sFamilyZIP = DataConvert.toString(rs.getString("FamilyZIP"));//住宅邮编
+		sFamilyTel = DataConvert.toString(rs.getString("FamilyTel"));//家庭固话
+		sMobileTelephone = DataConvert.toString(rs.getString("MobileTelephone"));//手机号
+		sIsCertTelephone = DataConvert.toString(rs.getString("IsCertTelephone"));//手机号码是否本人身份证号码登记
+		sEmployeeType = DataConvert.toString(rs.getString("EmployeeType"));//客户类型
+		sEmployeeTypeName = DataConvert.toString(rs.getString("EmployeeTypeName"));//客户类型
+		sPersonalType = DataConvert.toString(rs.getString("PersonalType"));//个人类型
+		sPersonalTypeName = DataConvert.toString(rs.getString("PersonalTypeName"));//个人类型
+        sWorkCorp = DataConvert.toString(rs.getString("WorkCorp"));//单位名称
+		sDepartment = DataConvert.toString(rs.getString("Department"));//所在部门 
+		sWorkNature = DataConvert.toString(rs.getString("WorkNature"));//单位性质
+		sWorkBeginDate =DataConvert.toString(rs.getString("WorkBeginDate"));//现单位工作年限
+		sIndustryAge = DataConvert.toString(rs.getString("IndustryAge"));//企业成立年限
+		sHeadShip = DataConvert.toString(rs.getString("HeadShip"));//职务名称
+	    sPosionLevel = DataConvert.toString(rs.getString("PosionLevel"));//职务类型
+		sWorkTel = DataConvert.toString(rs.getString("WorkTel"));//单位固话
+		sWorkAdd = DataConvert.toString(rs.getString("WorkAdd"));//单位详细地址
+		sWorkZip = DataConvert.toString(rs.getString("WorkZip"));//单位邮编
+		sHRContacts = DataConvert.toString(rs.getString("HRContacts"));//人事部联系人
+		sHRCorp_Area = DataConvert.toString(rs.getString("HRCorp_Area"));//人事部联系区号
+		sHRZone = DataConvert.toString(rs.getString("HRZone"));//人事部联系电话
+		sTelephone = DataConvert.toString(rs.getString("Telephone"));//人事部联系手机号
+        sMonthIncome = DataConvert.toString(rs.getString("MonthIncome"));//月收入
+		sOwningcar = DataConvert.toString(rs.getString("Owningcar"));//有无汽车
+		sEmailAdd = DataConvert.toString(rs.getString("EmailAdd"));//电子邮箱
+		sQQAccountNo = DataConvert.toString(rs.getString("QQAccountNo"));//QQ
+		sWeChatAccountNo = DataConvert.toString(rs.getString("WeChatAccountNo"));//微信号
+		sFirstTel = DataConvert.toString(rs.getString("FirstTel"));//首选电话
+		sFirstEmail = DataConvert.toString(rs.getString("FirstEmail"));//首选邮寄
+        
+		dBusinessSum = rs.getDouble("BusinessSum");//申请金额
+		sAdjustRateType = DataConvert.toString(rs.getString("AdjustRateType"));//利率调整方式
+		sOccurType = DataConvert.toString(rs.getString("OccurType"));//业务类型
+		sOccurTypeName = DataConvert.toString(rs.getString("OccurTypeName"));//业务类型
+		sMainReturnType = DataConvert.toString(rs.getString("MainReturnType"));//还款方式
+		sLoanTerm = DataConvert.toString(rs.getString("LoanTerm"));//贷款期限
+		sReturnPeriod = DataConvert.toString(rs.getString("ReturnPeriod"));//还款周期
+		sCurrency = DataConvert.toString(rs.getString("Currency"));//币种
+		sPurpose = DataConvert.toString(rs.getString("Purpose"));//贷款用途
+		sOtherPurpose =DataConvert.toString(rs.getString("OtherPurpose"));//其他用途
+	    sPaymentMode = DataConvert.toString(rs.getString("PaymentMode"));//支付方式
+		sAcountRepayName = DataConvert.toString(rs.getString("AcountRepayName"));//还款账户户名
+		sPayMentCardID = DataConvert.toString(rs.getString("PayMentCardID"));//还款卡号
+		sAccountRepayBank = DataConvert.toString(rs.getString("AccountRepayBank"));//还款账户开户行
+		sAccountRepayBankId = DataConvert.toString(rs.getString("AccountRepayBankId"));//还款账户开户行行号
+		sGatheringName = DataConvert.toString(rs.getString("GatheringName"));//收款账户户名
+        sGatheringCardID = DataConvert.toString(rs.getString("GatheringCardID"));//收款卡号/账号
+		sAccountInBank = DataConvert.toString(rs.getString("AccountInBank"));//收款行名称
+		sAccountInsubBank = DataConvert.toString(rs.getString("AccountInsubBank"));//收款账户开户行
+		sAccountInsubBankId = DataConvert.toString(rs.getString("AccountInsubBankId"));//收款账户开户行行号
+		sBusinessType = DataConvert.toString(rs.getString("BusinessType"));//业务类型
+		sBusinessTypeName = DataConvert.toString(rs.getString("BusinessTypeName"));//贷款品种 
+		sPurposeType = DataConvert.toString(rs.getString("PurposeType"));//
+		sUnitKind = DataConvert.toString(rs.getString("UnitKind"));//借款人行业名称
+		sUnitKindName = DataConvert.toString(rs.getString("UnitKindName"));//借款人行业名称
+		sOccupation = DataConvert.toString(rs.getString("Occupation"));//借款人职业名称
+		sOccupationName = DataConvert.toString(rs.getString("OccupationName"));//借款人职业名称
+		sOperateOrgID = DataConvert.toString(rs.getString("OperateOrgID"));//
+		sOperateOrgName = DataConvert.toString(rs.getString("OperateOrgName"));//
+		sBarCodeNo = DataConvert.toString(rs.getString("BarCodeNo"));//
+		sOperateUserID = DataConvert.toString(rs.getString("OperateUserID"));//
+		sOtherAccessoryMaterial = DataConvert.toString(rs.getString("OtherAccessoryMaterial"));//
+		sOtherDatum = DataConvert.toString(rs.getString("AccessoryMaterial"));
+		sRemark = DataConvert.toString(rs.getString("Remark"));//
+		sFamilyProvincesName = DataConvert.toString(rs.getString("FamilyProvincesName"));//
+		sCorpArea = DataConvert.toString(rs.getString("CorpArea"));
+		sHouseArea = DataConvert.toString(rs.getString("HouseArea"));//
+		sWorkProvincesName = DataConvert.toString(rs.getString("WorkProvincesName"));//
+		sSpouseName = DataConvert.toString(rs.getString("SpouseName"));//
+		sSpouseId = DataConvert.toString(rs.getString("SpouseId"));//
+		
+		
+	}else{
+		throw new Exception("申请信息不存在，请联系系统管理员！");
+	}
+	rs.close();
+	sSql = "select Phone from SALE_MANAGER where SerialNo = '"+sOperateUserID+"'";
+	rs = Sqlca.getASResultSet(sSql);
+	if(rs.next()){
+		sOperateTelephone = DataConvert.toString(rs.getString("Phone"));
+	}
+	rs.getStatement().close();
+	
+	//联系人改造
+	sSql = "select name_relative as FamilyName,getItemName('RelationShip',relationship) as FamilyRelationShip,mobiletelephone as FamilyRelationPhone,telephone as FamilyTelePhone,telarea as Kinsfolk_Corp_Area from Ind_Relative where SerialNo = (select min(serialno) from ind_relative where objectno = '"+sSerialNo+"' and type_relative = '01')";
+	rs = Sqlca.getASResultSet(sSql);
+	if(rs.next()){
+		sFamilyName = DataConvert.toString(rs.getString("FamilyName"));//亲属联系人姓名
+		sFamilyRelationShip = DataConvert.toString(rs.getString("FamilyRelationShip"));//亲属联系人关系
+		sFamilyRelationPhone = DataConvert.toString(rs.getString("FamilyRelationPhone"));//亲属联系人手机号
+		sFamilyTelePhone = DataConvert.toString(rs.getString("FamilyTelePhone"));//亲属联系人固定电话
+		sKinsfolk_Corp_Area = DataConvert.toString(rs.getString("Kinsfolk_Corp_Area"));//亲属区号
+	}
+	rs.close();
+	
+	sSql = "select name_relative as NoFamilyName,getItemName('NoFamilyRelationship',relationship) as NoFamilyRelationShip,mobiletelephone as NoFamilyMobileTelephone,telephone as NoFamilyTelePhone,telarea as TelArea from Ind_Relative where SerialNo = (select min(serialno) from ind_relative where objectno = '"+sSerialNo+"' and type_relative = '02')";
+	rs = Sqlca.getASResultSet(sSql);
+	if(rs.next()){
+		sNoFamilyName = DataConvert.toString(rs.getString("NoFamilyName"));//其他联系人姓名
+		sNoFamilyRelationShip = DataConvert.toString(rs.getString("NoFamilyRelationShip"));//其他联系人关系
+		sNoFamilyMobileTelephone = DataConvert.toString(rs.getString("NoFamilyMobileTelephone"));//其他联系人手机
+		sNoFamilyTelePhone = DataConvert.toString(rs.getString("NoFamilyTelePhone"));//其他联系人座机
+		sTelArea = DataConvert.toString(rs.getString("TelArea"));//非亲属区号
+	}
+	rs.close();
+	
+	//tangbo 汉口银行房抵贷 抵押人信息
+	String sHISerialNo= DataConvert.toString(Sqlca.getString("select SerialNo from house_property_info hi  where hi.objectno='"+sSerialNo+"'"));
+	sSql = "select ci.coownername,ci.certid from  COOWNER_INFO ci where ci.objectno='"+sHISerialNo+"'   Order by  SerialNo";
+	rs = Sqlca.getASResultSet(sSql);
+	if(rs.next()){
+		sDYName = DataConvert.toString(rs.getString("coownername"));//抵押人1姓名
+		sDYCertId = DataConvert.toString(rs.getString("certid"));//抵押人1证件号码
+		if(rs.next()){
+			sDYName2 = DataConvert.toString(rs.getString("coownername"));//抵押人2姓名
+			sDYCertId2 = DataConvert.toString(rs.getString("certid"));//抵押人2证件号码
+		}
+	}
+	rs.close();
+	
+	//tangbo 汉口银行房抵贷 抵押物信息
+	sSql = "select getItemAllAreaCodeName('AreaCode',hi.houseaddress)||hi.houseaddressdetail   as DYHouseSit,hi.HouseAcreage,  getitemname('PlannedUses',hi.plannedUses) as PlannedUsesName,hi.PlannedUsesOther,hi.HouseAge,hi.HandaverAgePrice,hi.EvaluateTotal2 from  house_property_info hi where hi.objectno='"+sSerialNo+"'";
+	rs = Sqlca.getASResultSet(sSql);
+	if(rs.next()){
+		sDYHouseSit= DataConvert.toString(rs.getString("DYHouseSit"));//坐落
+		sDYHouseAcreage= DataConvert.toString(rs.getString("HouseAcreage"));//房产建筑面积
+		sPlannedUsesOther= DataConvert.toString(rs.getString("PlannedUsesOther"));//房产用途其它
+		sPlannedUses= DataConvert.toString(rs.getString("PlannedUsesName"));//房产用途
+		sDYHouseAge= DataConvert.toString(rs.getString("HouseAge"));//房龄
+		sDYPrice= DataConvert.toString(rs.getString("HandaverAgePrice"));//人工录入均价
+		sDYCountPrice= DataConvert.toString(rs.getString("EvaluateTotal2"));//总价2
+	}
+	rs.close();
+	
+	String sIntroducerName = "",sIntroducerID = "",sIntroducerTelephone="";
+	//材料明细
+	String sOtherDatumNames[][]={
+		{"1","身份证复印件"},{"1","工作证明"},{"1","收入证明"},{"1","银行流水"},{"1","贷面谈面签声明+贷款用途承诺书"},
+		{"1","广东华兴银行还款账户复印件"},{"1","借款合同"},{"1","营业地证明"},{"1","其他"}
+		};
+ %>
+<div id="BarCodeNo" lang=3DEN-US style='font-size:18pt;font-family:C39HrP24DlTt' align = "left">
+<img class=clockimg src=<%=sResourcesPath%>/WCH.jpg width="300" > 
+</div>
+<br>
+<p align=center><o:p></o:p></p>
+
+
+<table   align="center" >
+<tr>
+<td  colspan="4"  align="center" >
+<h2>
+<div align="center">
+ 		<font face="宋体">个人信用贷款申请表<o:p></o:p></font>
+	</div >
+</h2>
+</td>
+<td  align=right>
+<table width=150 border="1" cellspacing="0" cellpadding="5" align="left" bordercolor='#000000'>
+	<tr>
+	 <td><b>推荐机构：&nbsp;大数金融</b></td>
+	</tr>
+</table>
+</td>
+</tr>
+</table>
+
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'>
+  <p style='line-height:150%;tab-stops:200.5pt'>
+  <span lang=EN-US
+	style='font-size:12.0pt;line-height:150%;font-family:Wingdings;mso-ascii-font-family:
+	黑体;mso-fareast-font-family:黑体;mso-hansi-font-family:宋体;mso-char-type:symbol;
+	mso-symbol-font-family:Wingdings'><span style='mso-char-type:symbol;mso-symbol-font-family:
+	Wingdings'>?</span></span><b style='mso-bidi-font-weight:normal'><span
+	style='mso-bidi-font-size:10.5pt;line-height:150%;font-family:黑体;mso-hansi-font-family:
+	宋体'>填写说明<span lang=EN-US><span style='mso-spacerun:yes'>&nbsp; </span></span></span></b><span
+	lang=EN-US style='font-size:16.0pt;line-height:150%;font-family:黑体;mso-hansi-font-family:
+	宋体'><o:p></o:p>
+</span>
+  <td  colspan="20"  >
+    	1、本申请表适用于持有二代身份证的中国公民；<br/>
+		2、申请金额为借款人能获得贷款的最高金额，我行有权根据客户资质降低贷款金额，以最终审批金额为准；<br/>
+		3、本申请表所填写的各项信息是能否获批贷款及核定金额的重要依据，务必仔细、严谨、如实填写。
+    </td>
+</table>
+
+<br/><br/>
+
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'>
+ <p style='line-height:150%;tab-stops:200.5pt'>
+ 	<span lang=EN-US
+		style='font-size:12.0pt;line-height:150%;font-family:Wingdings;mso-ascii-font-family:
+		黑体;mso-fareast-font-family:黑体;mso-hansi-font-family:宋体;mso-char-type:symbol;
+		mso-symbol-font-family:Wingdings'>
+	<span style='mso-char-type:symbol;mso-symbol-font-family:
+	Wingdings'>?</span></span><b style='mso-bidi-font-weight:normal'>
+	<span style='mso-bidi-font-size:10.5pt;line-height:150%;font-family:黑体;mso-hansi-font-family:
+	宋体'>借款人信息<span lang=EN-US><span style='mso-spacerun:yes'>&nbsp; </span></span></span></b>
+	<span
+		lang=EN-US style='font-size:16.0pt;line-height:150%;font-family:黑体;mso-hansi-font-family:
+		宋体'><o:p></o:p>
+	</span>  
+
+<% 
+	
+	if("".equals(sCertificateduedate)||sCertificateduedate==null){
+		sCertificateduedate = "  /  /  ";
+	}
+	String CertMaturityDate[] = sCertificateduedate.split("/");
+	
+	
+%>
+  <tr >
+    <td colspan="7"  >姓名：<%=sCustomerName %></td>
+    <td colspan="3" >性别：<%=sSex%>
+    </td>
+    <td colspan="10" >身份证号：<%=sCertID%></td>
+  </tr>
+  <tr>
+  	<td colspan="7">证件到期日：<%=CertMaturityDate[0]%>年<%=CertMaturityDate[1]%>月<%=CertMaturityDate[2]%>日
+  	 </td>
+  	<td colspan="7">身份证签发机关：<%=sNativeAdd %></td> 
+  	<td colspan="6">户口所在地：<%=sCustomerLocation%>
+  	</td>
+  </tr> 
+   <tr >
+    <td colspan="20"  >户籍地址：     <%=sFamilyProvincesName%>&nbsp;<%=sFamilyAdd%></td>
+  </tr>
+  <tr >
+    <td colspan="10" >教育程度：<%=sEduExperience%>
+    </td>
+    <td colspan="10" >婚姻状况：<%=sMarriage%>
+    </td>
+  </tr>
+  <tr>	
+  	<td colspan="3">配偶姓名：<%=sSpouseName%></td>
+  	<td colspan="13">配偶证件类型：<%=sSpouseId %>
+  	</td>
+  	<td colspan="4" >身份证号：<%=sCertID%></td>
+  </tr>
+  
+  <tr >
+    <td colspan="4"  >有无子女：<%=sChildFlag %>
+    </td>
+    <td colspan="4"  >有无本地房产：<%=sLocalHouseFlag %>
+    </td>
+    <td colspan="12" >居住状况：<%=sFamilyStatus%>
+    </td>
+  </tr>
+ <tr >
+    <td colspan="16">居住地址：      <%=sFamilyProvincesName%>&nbsp;<%=sFamilyAdd%></td>
+    <td colspan="3">居住地邮编：   <%=sFamilyProvincesName%>&nbsp;<%=sFamilyAdd%> </td>
+  </tr>
+  <tr>
+  	<td colspan="12">家庭固话：区号&nbsp; <%=sHouseArea %>&nbsp;号码&nbsp;<%=sFamilyTel %></td>
+  	<td colspan="8">手机号：<%=sMobileTelephone %></td>
+  </tr>
+    <%  
+  String  sNewEmployeeTypeName ="";
+  //自雇
+  if("060".equals(sEmployeeType)){
+        if("030".equals(sPersonalType)){
+            sNewEmployeeTypeName ="自雇-个体工商户";
+	     }else if("040".equals(sPersonalType)){
+	        sNewEmployeeTypeName ="自雇-小微企业法人代表/股东";
+	     }else{
+	        sNewEmployeeTypeName ="其他自雇-"+sPersonalTypeName;
+	     }
+	}else{
+	    if(!"".equals(sPersonalType)){
+	      sNewEmployeeTypeName=sEmployeeTypeName+"-"+sPersonalTypeName;
+	    }else{
+	      sNewEmployeeTypeName=sEmployeeTypeName;
+	    }
+	    
+	}
+ %>
+  <tr>
+  	<td colspan="20">客户类型：<%=sNewEmployeeTypeName %>
+  	</td>
+  </tr>
+ 
+  <tr>
+  	<td colspan="8">单位名称：<%=sWorkCorp%>&nbsp;部门：<%=sDepartment%></td>
+  	<td colspan="12">单位性质：<%=sWorkNature%>
+  	</td>
+  </tr>
+  <tr>
+  	<td colspan="5">现单位工作年限：<%=sWorkBeginDate %>年</td>
+  	<td colspan="8">（自雇人士填写）企业成立年限&nbsp;<%=sIndustryAge %>年</td>
+  	<td colspan="7">职务名称：<%=sHeadShip%></td>
+  </tr>
+   <tr>
+  	<td colspan="14">职务类型：<%=sPosionLevel %>
+  	 </td>
+  	<td colspan="6"> 单位固话：区号&nbsp;<%=sCorpArea%>&nbsp;号码&nbsp;<%=sWorkTel%></td> 	
+  </tr>
+   <tr >
+    <td colspan="14"  >单位地址：<%=sWorkProvincesName%> <%=sWorkAdd%>
+    	
+    </td>
+    <td colspan="6" > 单位邮编：<%=sWorkZip %></td>
+   </tr> 
+    <tr>
+  	<td colspan="6">人事部联系人：<%=sHRContacts %></td>
+  	<td colspan="14"> 人事部联系电话：区号&nbsp;<%=sHRCorp_Area %>号码&nbsp;<%=sHRZone %> &nbsp;/手机号：&nbsp;<%=sTelephone %></td>
+   </tr>
+   <tr>
+  	<td colspan="3">月收入：<%=DataConvert.toMoney(sMonthIncome) %>&nbsp;元</td>
+  	<td colspan="10">首选联系电话：<%=sFirstTel %>
+  	</td>
+  	<td colspan="7">首选邮寄地址：<%=sFirstEmail%> 
+  		<label><input name="firstemail" type="checkbox" value="<%=sFirstEmail %>" />居住地址</label> 
+  		<label><input name="firstemail" type="checkbox" value="<%=sFirstEmail %>" />单位地址</label> 
+  	</td>
+  
+  </tr>
+   <tr>
+  	<td colspan="8">电子邮箱：<%=sEmailAdd%></td>
+  	<td colspan="6">微信账号：<%=sWeChatAccountNo %></td>
+  	<td colspan="6">QQ账号：<%=sQQAccountNo%></td>
+  </tr>
+  
+</table>
+<br/><br/>
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'>  
+  <p class=MsoNormal style='margin-top:3.9pt;mso-para-margin-top:.25gd'><span
+	lang=EN-US style='font-size:12.0pt;font-family:Wingdings;mso-ascii-font-family:
+	黑体;mso-fareast-font-family:黑体;mso-hansi-font-family:宋体;mso-char-type:symbol;
+	mso-symbol-font-family:Wingdings'><span style='mso-char-type:symbol;mso-symbol-font-family:
+	Wingdings'>?</span></span><b style='mso-bidi-font-weight:normal'><span
+	style='mso-bidi-font-size:10.5pt;font-family:黑体;mso-hansi-font-family:宋体'>联系人信息（不承担贷款相关责任）<span
+	lang=EN-US><o:p></o:p></span></span>
+   </b>
+  <tr >
+    <td colspan="8" >亲属联系人姓名：<%=sFamilyName %>&nbsp;&nbsp;是您的：<%=sFamilyRelationShip%></td>
+    <td colspan="4" >手机号：<%= sFamilyRelationPhone%></td>
+    <td colspan="8"> 固定电话：区号&nbsp;<%=sKinsfolk_Corp_Area %>&nbsp;号码&nbsp;<%=sFamilyTelePhone %> </td>
+  </tr>
+  <tr >
+     <td colspan="8" >其他联系人姓名：<%=sNoFamilyName %>&nbsp;&nbsp;是您的：<%=sNoFamilyRelationShip%></td>
+    <td colspan="4" >手机号：<%=sNoFamilyMobileTelephone %></td>
+    <td colspan="8"> 固定电话：区号&nbsp;<%=sTelArea %>&nbsp;号码&nbsp;<%=sNoFamilyTelePhone %> </td>
+  </tr>
+</table>
+<br/><br/>
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'>  
+  <p style='margin-top:3.9pt;mso-para-margin-top:.25gd'><span
+lang=EN-US style='font-size:12.0pt;font-family:Wingdings;mso-ascii-font-family:
+黑体;mso-fareast-font-family:黑体;mso-hansi-font-family:宋体;mso-char-type:symbol;
+mso-symbol-font-family:Wingdings'><span style='mso-char-type:symbol;mso-symbol-font-family:
+Wingdings'>?</span></span><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:10.5pt;font-family:黑体;mso-hansi-font-family:宋体'>贷款事项<span
+lang=EN-US><o:p></o:p></span></span></b>
+  
+	<tr>
+		<td colspan="11" >申请金额（人民币）：<%=DataConvert.toMoney(dBusinessSum)%>元（大写）<%=StringFunction.numberToChinese(dBusinessSum)%></td>
+		<td colspan="9" >利率调整方式：<%=sAdjustRateType%></td>
+	</tr>
+	<tr>
+		<td colspan="7"  >还款方式：<%=sMainReturnType%></td>
+		<td colspan="6" >贷款期限：<%=sLoanTerm%> 月</td>
+		<td colspan="7" >还款周期：<%=sReturnPeriod%></td>
+	</tr>
+<% 
+   if(sOtherPurpose != null && !"".equals(sOtherPurpose)){
+       sPurpose=sPurpose+"-"+sOtherPurpose;
+	}
+	
+	if("010".equals(sOccurType)){
+	  sOccurTypeName = "新增贷款";
+	}else if("030".equals(sOccurType)){
+	  sOccurTypeName= "借新还旧";
+	}
+ %>
+	<tr>
+		<td colspan="9" >业务类型：<%=sOccurTypeName%></td>
+		<td colspan="11">贷款用途： <%=sPurpose%></td>
+	</tr> 
+	</table>
+	<br/><br/>
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'>  
+  <p style='margin-top:3.9pt;mso-para-margin-top:.25gd'><span
+lang=EN-US style='font-size:12.0pt;font-family:Wingdings;mso-ascii-font-family:
+黑体;mso-fareast-font-family:黑体;mso-hansi-font-family:宋体;mso-char-type:symbol;
+mso-symbol-font-family:Wingdings'><span style='mso-char-type:symbol;mso-symbol-font-family:
+Wingdings'>?</span></span><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:10.5pt;font-family:黑体;mso-hansi-font-family:宋体'>抵押物信息<span
+lang=EN-US><o:p></o:p></span></span></b>
+  <%
+   if(sPlannedUsesOther != null && !"".equals(sPlannedUsesOther)){
+       sPlannedUses=sPlannedUses+"-"+sPlannedUsesOther;
+	}
+   %>
+	<tr>
+		<td colspan="7" >抵押人1姓名：<%=sDYName%></td>
+		<td colspan="13" >抵押人1身份证号码：<%=sDYCertId%></td>
+	</tr>
+	<tr>
+		<td colspan="7" >抵押人2姓名：<%=sDYName2%></td>
+		<td colspan="13" >抵押人2身份证号码：<%=sDYCertId2%></td>
+	</tr>
+	<tr>
+		<td colspan="20" >其他抵押人信息（如有）：</td>
+	</tr>
+	<tr>
+		<td colspan="12" >坐落：<%=sDYHouseSit%></td>
+		<td colspan="3" >房产建筑面积：<%=sDYHouseAcreage%>㎡</td>
+		<td colspan="3" >房产用途：<%=sPlannedUses%></td>
+		<td colspan="2" >房龄：<%=sDYHouseAge%>年</td>
+	</tr>
+	<tr>
+		<td colspan="8" >单价（人民币）：<%=sDYPrice%>元/㎡</td>
+		<td colspan="12" >总价（人民币）：<%=sDYCountPrice%>元</td>
+	</tr>
+	</table>
+	<br/><br/>
+
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'>  
+  <p style='margin-top:3.9pt;mso-para-margin-top:.25gd'><b
+style='mso-bidi-font-weight:normal'><span lang=EN-US style='font-size:12.0pt;
+font-family:Wingdings;mso-ascii-font-family:黑体;mso-fareast-font-family:黑体;
+mso-hansi-font-family:宋体;mso-char-type:symbol;mso-symbol-font-family:Wingdings'><span
+style='mso-char-type:symbol;mso-symbol-font-family:Wingdings'>?</span></span></b><b
+style='mso-bidi-font-weight:normal'><span style='mso-bidi-font-size:10.5pt;
+font-family:黑体;mso-hansi-font-family:宋体'>账户管理授权信息：</span></b><span style='font-family:
+黑体;mso-hansi-font-family:华文楷体;mso-bidi-font-family:华文楷体;color:black'>支付方式：<%=sPaymentMode%></span> <br><span style='font-size:10.0pt;font-family:黑体;mso-hansi-font-family:宋体'> 
+ 注：1、无论选择何种支付方式，均须填写收款账户信息   2、还款账户即为贷款月供的扣款账户</span><b
+style='mso-bidi-font-weight:normal'><span lang=EN-US style='mso-bidi-font-size:
+9.5pt;font-family:黑体;mso-hansi-font-family:宋体'><o:p></o:p></span></b>
+
+   <tr >
+    <td width=5% colspan="1" align="center" rowspan=3  >账<br>户<br>授<br>权</td>
+    <td colspan="19" width=900 >&nbsp;&nbsp;&nbsp;&nbsp;授权汉口银行发放贷款时，直接将款项划转到指定收款账户，并授权指定机构按期从指定还款账户扣除所欠的每期还款，直到本笔贷款清偿为止；因该账户余额不足、冻结、失效等原因扣款失败引起的损失由本人承担。</td>
+  </tr>
+  <tr>
+  	<td width=50%  >还款账户开户行：<%=sAccountRepayBank %></td>
+  	<td width=20%  >户名：<%=sAcountRepayName %></td>
+  	<td width=30%  >卡/账号：<%=sPayMentCardID %></td>
+  </tr>
+  
+  <tr>
+  	<td width=50%   >收款账户开户行：<%=sAccountInsubBank%></td>
+  	<td width=20%   >户名：<%=sGatheringName %></td>
+  	<td width=30%   >卡/账号：<%=sGatheringCardID %></td>
+  </tr>
+</table>
+<br/><br/>
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'> 
+  <p style='margin-top:3.9pt;mso-para-margin-top:.25gd'><span
+lang=EN-US style='font-size:12.0pt;font-family:Wingdings;mso-ascii-font-family:
+黑体;mso-fareast-font-family:黑体;mso-hansi-font-family:宋体;mso-char-type:symbol;
+mso-symbol-font-family:Wingdings'><span style='mso-char-type:symbol;mso-symbol-font-family:
+Wingdings'>?</span></span><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:10.5pt;font-family:黑体;mso-hansi-font-family:宋体'>告知、授权及声明<span
+lang=EN-US><o:p></o:p></span></span></b>
+  
+  <tr >
+    <td width=5% colspan="1" align="center"   >征<br>信<br>授<br>权</td>
+    <td colspan="19"  >
+	&nbsp;&nbsp;&nbsp;&nbsp;本人同意并授权贵行有权依照《征信业管理条例》、《个人信用信息基础数据库管理暂行办法》等相关法律、法规的规定，将本人个人信用信息报送中国人民银行个人信用信息基础数据库和经中国人民银行批准设立的征信机构，并同意上述法律法规规定的有权使用人可依据规定的范围，查询、使用本人包括社保信息在内的信用报告。</td>
+  </tr>
+
+  <tr >
+    <td width=5% colspan="1" align="center"  >用<br>途<br>声<br>明</td>
+    <td  colspan="19"  >
+    	本人向贵行申请个人贷款，所申报的贷款用途真实，并承诺不得用于以下目的和用途：<br/>
+		1、贷款资金不得以任何形式进入证券市场、或用于股本权益性投资；<br/>
+		2、贷款资金不得用于国家明令禁止或限制的经营活动；<br/>
+		3、贷款资金不得用于房地产项目开发；
+    </td>
+  </tr>
+  
+  <tr >
+    <td width=5% colspan="1" align="center"  >事<br>项<br>声<br>明</td>
+    <td  colspan="19"  >
+    	1.	同意以此申请表及其他所附资料作为向贵行借款的依据，承诺所提供的各项资料属实，如资料失实或虚假，本人愿意承担相应的法律责任；<br/>
+		2.	同意贵行收集、处理、应用及保留本人个人资料，无论本次贷款申请被批准或者否决，所有申请资料均留存贵行，不予退回但予以保密；<br/>
+		3.	<strong>同意贵行在核定贷款金额、期限、利率、用途与申请表中请求一致时直接发放贷款，不必另行通知本人；当核定金额、期限、利率和用途与申请不一致时，与本人沟通确认后放款；</strong><br/>
+		4.	同意贵行在获悉本人联系方式已变更时，可直接更改相关联系信息，无须另行通知；<br/>
+		5.	本人同意提供给贵行的信息，及本人享受贵行金融服务产生的信息（包括本单证签署之前提供和产生的），可用于贵行及因服务必要而委托的第三方为本人提供服务及推荐产品，法律禁止的除外。汉口银行及其委托的第三方对上述信息负有保密义务。本条款自本单证签署时生效，具有独立法律效力，不受合同成立与否及效力状态变化的影响；<br/>
+		6.	经贵行审查不符合贵行借款条件而未予受理时，本人无异议；<br/>
+		7.	如贵行要求提供贷款资金使用凭证，本人同意在贵行要求的时间内提交，并愿意承担未及时提交的所有罚则，包括按合同加收罚息及提前收回贷款（同时承担合同约定的提前还款违约金）。<br/>
+    </td>
+  </tr>
+  
+
+  
+ <tr height="20">
+    <td colspan="20"  ><strong>借款人签名：</strong><ins style='width:25em'></ins>&nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;日</td>
+  </tr>
+</table>
+
+<br/><br/>
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'> 
+<p class=MsoNormal style='margin-top:3.9pt;mso-para-margin-top:.25gd'><span
+lang=EN-US style='font-size:12.0pt;font-family:Wingdings;mso-ascii-font-family:
+黑体;mso-fareast-font-family:黑体;mso-hansi-font-family:宋体;mso-char-type:symbol;
+mso-symbol-font-family:Wingdings'><span style='mso-char-type:symbol;mso-symbol-font-family:
+Wingdings'>?</span></span><b style='mso-bidi-font-weight:normal'><span
+style='mso-bidi-font-size:10.5pt;font-family:黑体;mso-hansi-font-family:宋体'>特别事项说明栏</span></b><span
+lang=EN-US style='font-size:12.0pt;font-family:黑体;mso-hansi-font-family:宋体'><o:p></o:p></span>
+ <tr >
+  <td  valign=top style='height:40pt'>
+  <strong>备注：</strong><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<%=sRemark %></td>
+ </tr>
+</table>
+<br/><br/>
+
+<table width="750" border="1" align="center"  cellspacing="0" cellpadding="5" bordercolor='#CCCCCC'> 
+  <p class=MsoNormal style='margin-top:3.9pt;mso-para-margin-top:.25gd'><b
+	style='mso-bidi-font-weight:normal'><span lang=EN-US style='mso-bidi-font-size:
+	10.5pt;font-family:Wingdings;mso-ascii-font-family:黑体;mso-fareast-font-family:
+	黑体;mso-hansi-font-family:宋体;mso-char-type:symbol;mso-symbol-font-family:Wingdings'><span
+	style='mso-char-type:symbol;mso-symbol-font-family:Wingdings'>?</span></span></b><b
+	style='mso-bidi-font-weight:normal'><span style='mso-bidi-font-size:10.5pt;
+	font-family:黑体;mso-hansi-font-family:宋体'>银行填写栏(以下为非客户填写事项)</span></b><span lang=EN-US
+	style='font-size:12.0pt;font-family:黑体;mso-hansi-font-family:宋体'><o:p></o:p></span>
+<%   
+  if("1010090".equals(sBusinessType)||"1010100".equals(sBusinessType)){
+		    sBusinessTypeName = "房供贷";
+		}
+ %>
+  <tr >
+  <td colspan="10"  >贷款品种：个人房抵贷</td>
+   <td colspan="10">贷款用途性质：<%=sPurposeType%></td>
+  </tr>
+    <% 
+		String sOtherDatumName = sOtherDatum.replaceAll("@","','");
+		if(!"".equals(sOtherDatumName)&& sOtherDatumName.indexOf("','")>-1){
+		    sOtherDatumName = sOtherDatumName.substring(2,sOtherDatumName.length()-2);
+		}else{
+		    sOtherDatumName ="''"; 
+		}
+		String sDatumNames = "",sOtherDatuNames="";
+		String SqlDatum = "select itemno,itemname from code_library where codeno='OtherDatumNew' and isinuse='1' and  itemno in ("+sOtherDatumName+")";
+	  	ASResultSet rsDatum = Sqlca.getASResultSet(SqlDatum);
+	  	while(rsDatum.next()){
+	  	    String itemno = DataConvert.toString(rsDatum.getString("itemno"));
+	  	    if("11".equals(itemno)){
+	  			sOtherDatuNames = DataConvert.toString(rsDatum.getString("itemname"))+"-"+sOtherAccessoryMaterial+"、";
+	  	    }else{
+	  			sDatumNames += DataConvert.toString(rsDatum.getString("itemname"))+"、";
+	  	    }
+	  	}
+	  	sDatumNames += sOtherDatuNames;
+	  	rsDatum.getStatement().close();
+     %>
+  <tr>
+  	<td colspan="6">附件材料（多选）</td>
+  	<td colspan="14" width=650>
+  	 <%	
+ 		out.print(sDatumNames);
+ 	 %>
+ 	 &nbsp;
+  	 &nbsp;
+  	</td>
+  </tr>
+  
+  <tr>
+  	<td colspan="11">借款人行业名称/代码：&nbsp;&nbsp;<%=sUnitKindName %>/<%=sUnitKind %></td>
+  	<td colspan="9">借款人职业名称/代码：&nbsp;&nbsp;<%=sOccupationName %>/<%=sOccupation %></td>
+  </tr>
+  <tr >
+    <td colspan="20"  >
+    	<p>
+		   <strong>调查意见</strong><br/>
+			1、	本人确认所有借款当事人在申请书上的签字均为其本人亲笔签署。<br/>
+			2、	本人已对借款人及相关关联人进行尽职调查，并就贷款申请内容和相关情况的真实性、准确性、完整性进行调查核实，同时与其进行了面谈。<br/>
+			3、	本案经初步调查，认为借款人符合条件，拟同意上报审批。<br/>
+			4、	其他说明事项：
+ 		</p>
+        <span><ins style='width:20em'></ins>面签人员签名：<ins style='width:10.05em'></ins>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;日</span>
+ 	</td>
+  </tr>
+  
+   <tr height="20">
+    <td height="20" colspan="20" >客户经理签名（正楷）/编号：<ins style='width:6.75em'></ins>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;日</td>
+  </tr>
+</table>
+<p><p>
+<div id='PrintButton1'> 
+    <table width=100%>
+        <tr>
+            <td align="center">
+                <%=HTMLControls.generateButton("打印","打印放贷通知单","javascript: my_Print()",sResourcesPath)%>
+            </td>
+            <td align="center">
+                <%=HTMLControls.generateButton("返回","返回","javascript: window.close()",sResourcesPath)%>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+<h2 align="center">&nbsp;</h2>
+
+</body>
+</html>
+
+	<script language="javascript">
+		//设置网页打印的页眉页脚为空 
+	//20090322设置网页打印的页眉页脚为空
+		//使用时，在打印函数window.print()前调用本函数;
+	function PageSetup_Null() 
+	{
+		var HKEY_Root,HKEY_Path,HKEY_Key; 
+		HKEY_Root="HKEY_CURRENT_USER"; 
+		HKEY_Path="\\Software\\Microsoft\\InternetExplorer\\PageSetup"; 
+		var Wsh=new ActiveXObject("WScript.Shell"); 
+		HKEY_Key="header"; 
+		Wsh.RegWrite(HKEY_Root+HKEY_Path+HKEY_Key,""); 
+		HKEY_Key="footer"; 
+		Wsh.RegWrite(HKEY_Root+HKEY_Path+HKEY_Key,"");			
+	} 
+	function my_Print()
+	{
+		PrintButton1.style.display="none";
+		//PageSetup_Null();
+		window.print();
+	}
+	//设置网页打印的页眉页脚为空
+	
+	</script>
+<%@ include file="/IncludeEnd.jsp"%>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+ <hibernate-mapping>
+ 	<!-- user类的映射-->
+ 	<class name="cn.sun.crm.domain.User" table="t_user">
+ 		<!-- 主键 -->
+ 		<id name="id">
+ 			<generator class="native"></generator>
+ 		</id>
+ 		<!-- 其他属性-->
+ 		<property name="username" column="username"></property>
+ 		<property name="sex" column="sex"></property>
+ 		<property name="birthday" column="birthday"></property>
+ 		<property name="address" column="address"></property>
+ 	</class>
+ </hibernate-mapping>   
+    
+    
+    
