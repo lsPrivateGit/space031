@@ -1,9 +1,9 @@
-package com.threadpool_线程池1;
+package com.threadpool_demo;
 
 public class Test {
 	public static void main(String[] args) {
 		/*try {
-			Class.forName("com.threadpool_线程池1.Test");
+			Class.forName("com.threadpool_锟竭程筹拷1.Test");
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

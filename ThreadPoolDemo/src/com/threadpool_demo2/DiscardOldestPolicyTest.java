@@ -1,4 +1,4 @@
-package com.threadpool_线程池拒绝策略;
+package com.threadpool_demo2;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;

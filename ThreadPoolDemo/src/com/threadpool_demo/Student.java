@@ -1,4 +1,5 @@
-package com.threadpool_线程池1;
+package com.threadpool_demo;
+
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -30,20 +31,20 @@ public class Student {
 	}
 	public static void main(String[] args) {
 		 random = new Random();
-		   List stuList = new ArrayList<Student>() {
+		   List<Student> stuList = new ArrayList<Student>() {
 		        {
 		            for (int i = 0; i < 100; i++) {
 		                add(new Student("student" + i, random.nextInt(50) + 50));
 		            }
 		        }
 		    };
-
+		System.out.println("sdfdsf");
 		// 列出班上超过85分的学生姓名，并按照分数降序输出用户名字
-		  /*  List<String> studentList = stuList.stream()
-            .filter(x->((Student) x).getScore()>85)
-            .sorted(Comparator.comparing(Student::getScore).reversed())
-            .map(Student::getName)
-            .collect(Collectors.toList());
-    System.out.println(studentList);*/
+		List studentList = stuList.stream()
+				.filter(a -> a.getScore()>85)
+				.sorted(Comparator.comparing(Student::getScore))
+				.map(b -> {return b.getScore();})
+				.collect(Collectors.toList());
+		System.out.println(studentList);
 	}
 }

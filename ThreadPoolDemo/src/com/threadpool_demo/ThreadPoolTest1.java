@@ -1,4 +1,4 @@
-package com.threadpool_线程池1;
+package com.threadpool_demo;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

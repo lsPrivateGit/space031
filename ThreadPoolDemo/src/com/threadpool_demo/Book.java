@@ -1,4 +1,4 @@
-package com.threadpool_Ïß³Ì³Ø1;
+package com.threadpool_demo;
 public class Book {
    /* public static void main(String[] args)
     {

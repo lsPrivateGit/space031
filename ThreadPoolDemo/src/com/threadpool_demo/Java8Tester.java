@@ -1,10 +1,5 @@
-package com.threadpool_Ïß³Ì³Ø1;
+package com.threadpool_demo;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
- 
 public class Java8Tester {
    public static void main(String args[]){
    

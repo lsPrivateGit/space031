@@ -1,4 +1,4 @@
-package com.threadpool_Ïß³Ì³Ø1;
+package com.threadpool_demo;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
